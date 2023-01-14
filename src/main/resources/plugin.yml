@@ -1,0 +1,5 @@
+name: KotlinTest
+author: PowerEngineTM
+main: com.vexillum.test.KotlinTest
+version: 1.0
+api-version: 1.19
