@@ -1,3 +1,2 @@
 
-rootProject.name = "KotlinTest"
-
+rootProject.name = "PluginCore"

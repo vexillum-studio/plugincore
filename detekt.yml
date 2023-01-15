@@ -1,0 +1,28 @@
+build:
+    maxIssues: 10
+
+formatting:
+    Indentation:
+        active: true
+    ImportOrdering:
+        active: true
+    NoWildcardImports:
+        active: false
+    MultiLineIfElse:
+        active: false
+
+style:
+    WildcardImport:
+        active: true
+        excludeImports:
+            - com.vexillum.*
+    LoopWithTooManyJumpStatements:
+        maxJumpCount: 3
+    ReturnCount:
+        max: 5
+    ThrowsCount:
+        active: false
+    MagicNumber:
+        ignoreAnnotation: true
+        ignoreEnums: true
+        ignoreNumbers: ['-1', '0', '1', '2', '100']

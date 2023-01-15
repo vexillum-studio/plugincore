@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Build" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="cp $PROJECT_DIR$/build/libs/KotlinTest.jar $LOCAL_SERVER_BUILD$/KotlinTest.jar" />
+  <configuration default="false" name="build and copy" type="ShConfigurationType">
+    <option name="SCRIPT_TEXT" value="cp $PROJECT_DIR$/build/libs/PluginCore.jar $LOCAL_SERVER_BUILD/PluginCore.jar" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="" />
     <option name="SCRIPT_OPTIONS" value="" />
@@ -11,9 +11,11 @@
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="EXECUTE_IN_TERMINAL" value="true" />
     <option name="EXECUTE_SCRIPT_FILE" value="false" />
-    <envs />
+    <envs>
+      <env name="LOCAL_SERVER_BUILD" value="$PROJECT_DIR$/../../bukkit/Development/plugins" />
+    </envs>
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="KotlinTest build" run_configuration_type="GradleRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="PluginCore build" run_configuration_type="GradleRunConfiguration" />
     </method>
   </configuration>
 </component>
