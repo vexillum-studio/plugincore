@@ -1,0 +1,7 @@
+{
+  "logs": {
+    "folder": "logs",
+    "prefixFormat": "[hh:mm:ss.SSS]",
+    "fileFormat": "yyyy-MM-dd"
+  }
+}

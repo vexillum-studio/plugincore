@@ -5,23 +5,23 @@ import com.vexillum.plugincore.extensions.logger
 import org.slf4j.Logger
 
 class LogManager(
-    val pluginCore: PluginCore
+    private val pluginCore: PluginCore
 ) {
-    private val logger: Logger = logger()
+    private val logger: Logger = pluginCore::class.logger()
 
-    fun debug(message: String) =
+    fun debug(message: Any?) =
         log(message, logger::debug)
 
-    fun info(message: String) =
+    fun info(message: Any?) =
         log(message, logger::info)
 
-    fun warning(message: String) =
+    fun warning(message: Any?) =
         log(message, logger::warn)
 
-    fun error(message: String) =
+    fun error(message: Any?) =
         log(message, logger::error)
 
-    private fun log(message: String, loggerFn: (String) -> Unit) {
-        loggerFn(message)
+    private fun log(message: Any?, loggerFn: (String) -> Unit) {
+        loggerFn(message.toString())
     }
 }

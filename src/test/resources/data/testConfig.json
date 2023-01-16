@@ -1,0 +1,12 @@
+{
+  "prop1": 5,
+  "object1": {
+    "a": "Hello",
+    "b": 23,
+    "c": {
+      "text": "There"
+    }
+  },
+  "list1": [1, 2, 3],
+  "material1": "STONE"
+}
