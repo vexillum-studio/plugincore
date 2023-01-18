@@ -1,6 +1,7 @@
 package com.vexillum.plugincore.launcher
 
 import com.vexillum.plugincore.PluginCore
+import com.vexillum.plugincore.launcher.config.LogConfig
 import com.vexillum.plugincore.launcher.config.PluginCoreConfig
 import com.vexillum.plugincore.manager.config.ConfigManager
 
@@ -10,16 +11,15 @@ fun main(args: Array<String>) {
 
 class PluginCoreLauncher : PluginCore() {
 
-    val configManager = ConfigManager(
-        this,
+    val configManager = managerFactory.newConfigManager(
         PluginCoreConfig::class,
-        "/config/plugincore"
+        "plugincore",
+        "config"
     )
 
     override fun enable() {
         logManager.info("PluginCore started")
-        configManager.reload()
-        logManager.info(configManager.config)
+        logManager.info(configManager())
     }
 
     override fun disable() {

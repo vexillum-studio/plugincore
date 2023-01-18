@@ -4,7 +4,7 @@ import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.extensions.logger
 import org.slf4j.Logger
 
-class LogManager(
+class LogManager internal constructor(
     private val pluginCore: PluginCore
 ) {
     private val logger: Logger = pluginCore::class.logger()
@@ -21,7 +21,11 @@ class LogManager(
     fun error(message: Any?) =
         log(message, logger::error)
 
-    private fun log(message: Any?, loggerFn: (String) -> Unit) {
-        loggerFn(message.toString())
+    fun trace(message: Any?) =
+        logger.info(message.toString())
+
+    private fun log(message: Any?, logFn: (String) -> Unit) {
+        logFn(message.toString())
     }
+
 }

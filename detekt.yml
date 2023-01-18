@@ -12,6 +12,8 @@ formatting:
         active: false
 
 style:
+    MaxLineLength:
+        maxLineLength: 150
     WildcardImport:
         active: true
         excludeImports:
