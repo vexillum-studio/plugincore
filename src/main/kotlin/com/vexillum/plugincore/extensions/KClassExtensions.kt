@@ -8,11 +8,23 @@ import kotlin.reflect.KClass
 fun KClass<*>.logger() =
     LoggerFactory.getLogger(this.java)
 
-fun KClass<*>.loadResource(path: String): File? =
-    java.getResource(path)?.file?.let { File(it) }
+/**
+ * Loads a resource as a stream from a path relative to the jar's resources structure without preceding '/'
+ * Example: data/config.json
+ */
+fun KClass<*>.loadResourceAsStream(path: String): InputStream? =
+    java.classLoader.getResourceAsStream(path)
 
+/**
+ * Loads a resource as a string from a path relative to the jar's resources structure without preceding '/'
+ * Example: data/config.json
+ */
 fun KClass<*>.loadResourceAsString(path: String): String? =
     loadResourceAsStream(path)?.readBytes()?.toString(Charsets.UTF_8)
 
-fun KClass<*>.loadResourceAsStream(path: String): InputStream? =
-    java.classLoader.getResourceAsStream(path)
+/**
+ * Loads a resource as a file from a path relative to the jar's resources structure without preceding '/'
+ * Example: data/config.json
+ */
+fun KClass<*>.loadResourceAsFile(path: String): File? =
+    java.getResource("/$path")?.file?.let { File(it) }

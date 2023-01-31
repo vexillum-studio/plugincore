@@ -22,7 +22,7 @@ class LogManager internal constructor(
         log(message, logger::error)
 
     fun trace(message: Any?) =
-        logger.info(message.toString())
+        log(message, logger::trace)
 
     private fun log(message: Any?, logFn: (String) -> Unit) {
         logFn(message.toString())

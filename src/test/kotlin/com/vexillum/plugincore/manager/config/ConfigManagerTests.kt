@@ -1,8 +1,7 @@
 package com.vexillum.plugincore.manager.config
 
 import com.vexillum.plugincore.PluginCore
-import com.vexillum.plugincore.extensions.loadResource
-import com.vexillum.plugincore.extensions.loadResourceAsString
+import com.vexillum.plugincore.extensions.loadResourceAsFile
 import com.vexillum.plugincore.manager.ManagerFactory
 import org.bukkit.Material
 import org.junit.jupiter.api.Test
@@ -32,7 +31,7 @@ class ConfigManagerTests {
 
     @Test
     fun `should correctly load a config file`() {
-        val testConfigFile = this::class.loadResource("/data/testConfig.json")!!
+        val testConfigFile = this::class.loadResourceAsFile("data/testConfig.json")!!
         val pluginCore = mock<PluginCore> {
             on { name } doReturn ("TestPlugin")
             on { logManager } doReturn (mock())

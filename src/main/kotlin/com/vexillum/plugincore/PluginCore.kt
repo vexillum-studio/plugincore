@@ -12,7 +12,7 @@ abstract class PluginCore : JavaPlugin() {
 
     final override fun onEnable() {
         this::class.loadResourceAsString(DEFAULT_BANNER_PATH)?.let {
-            logManager.trace("\n$it\n")
+            println(it)
         }
         enable()
     }
@@ -26,7 +26,7 @@ abstract class PluginCore : JavaPlugin() {
     abstract fun disable()
 
     companion object {
-        private const val DEFAULT_BANNER_PATH = "/banner.txt"
+        private const val DEFAULT_BANNER_PATH = "banner.txt"
     }
 
 }

@@ -19,7 +19,6 @@ class PluginCoreLauncher : PluginCore() {
 
     override fun enable() {
         logManager.info("PluginCore started")
-        logManager.info(configManager())
     }
 
     override fun disable() {
