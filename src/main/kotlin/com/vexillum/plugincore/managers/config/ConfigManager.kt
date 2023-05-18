@@ -1,4 +1,4 @@
-package com.vexillum.plugincore.manager.config
+package com.vexillum.plugincore.managers.config
 
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
 import com.vexillum.plugincore.PluginCore
@@ -13,11 +13,11 @@ class ConfigManager<T : Any> internal constructor(
     val name: String,
     private val pluginCore: PluginCore,
     private val configClass: KClass<T>,
-    private val originPath: String,
-    private val destinationPath: String
+    private val originFolderPath: String,
+    private val destinationFolderPath: String
 ) {
 
-    private val destinationFile = File(pluginCore.dataFolder, "/$destinationPath/$name$JSON_EXTENSION")
+    private val destinationFile = File(pluginCore.dataFolder, "/$destinationFolderPath/$name$JSON_EXTENSION")
     private var config: T = load()
 
     fun save(config: T) {
@@ -39,19 +39,19 @@ class ConfigManager<T : Any> internal constructor(
         }
     }
 
-    private fun load() : T {
+    private fun load(): T {
         try {
             val destinationFolder = destinationFile.parentFile
             if (!destinationFolder.exists() && !destinationFolder.mkdirs()) {
                 pluginCore.logManager.error("Can't create the config container folder")
             }
-            if(!destinationFile.exists()) {
+            if (!destinationFile.exists()) {
                 copyFromOrigin()
             }
         } catch (e: Exception) {
-            val message = when(e) {
+            val message = when (e) {
                 is IllegalStateException -> e.message
-                else -> "IO exception copying the origin configuration to the plugin's data folder file: $destinationPath"
+                else -> "IO exception copying the origin configuration to the plugin's data folder file: $destinationFolderPath"
             }
             pluginCore.logManager.error(message)
             throw e
@@ -60,14 +60,15 @@ class ConfigManager<T : Any> internal constructor(
     }
 
     private fun copyFromOrigin() {
-        val originPath = "$originPath/$name$JSON_EXTENSION"
+        val originPath = "$originFolderPath/$name$JSON_EXTENSION"
         pluginCore.logManager.info("Copying origin configuration from: $originPath")
-        val inputStream = this::class.loadResourceAsStream(originPath) ?:
-        error("Can't find the origin configuration file from: $originPath")
-        destinationFile.createNewFile()
-        inputStream.copyTo(destinationFile)
+        val inputStream = this::class.loadResourceAsStream(originPath)
+            ?: error("Can't find the origin configuration file from: $originPath")
+        inputStream.use {
+            destinationFile.createNewFile()
+            inputStream.copyTo(destinationFile)
+        }
     }
 
     operator fun invoke() = config
-
 }

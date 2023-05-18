@@ -1,4 +1,4 @@
-package com.vexillum.plugincore.manager.log
+package com.vexillum.plugincore.managers.log
 
 import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.extensions.logger
@@ -27,5 +27,4 @@ class LogManager internal constructor(
     private fun log(message: Any?, logFn: (String) -> Unit) {
         logFn(message.toString())
     }
-
 }

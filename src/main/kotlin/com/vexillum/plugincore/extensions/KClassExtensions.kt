@@ -1,8 +1,10 @@
 package com.vexillum.plugincore.extensions
 
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.InputStream
-import org.slf4j.LoggerFactory
+import java.net.URL
+import java.nio.file.Path
 import kotlin.reflect.KClass
 
 fun KClass<*>.logger() =
@@ -27,4 +29,18 @@ fun KClass<*>.loadResourceAsString(path: String): String? =
  * Example: data/config.json
  */
 fun KClass<*>.loadResourceAsFile(path: String): File? =
-    java.getResource("/$path")?.file?.let { File(it) }
+    loadResourceAsURL(path)?.file?.let { File(it) }
+
+/**
+ * Loads a resource from a path relative to the jar's resources structure without preceding '/'
+ * Example: data/config.json
+ */
+fun KClass<*>.loadResource(path: String): Path? =
+    loadResourceAsURL(path)?.let { Path.of(it.toURI()) }
+
+/**
+ * Loads a resource as a file from a path relative to the jar's resources structure without preceding '/'
+ * Example: data/config.json
+ */
+fun KClass<*>.loadResourceAsURL(path: String): URL? =
+    java.getResource("/$path")

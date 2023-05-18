@@ -1,4 +1,4 @@
-package com.vexillum.plugincore.launcher.config
+package com.vexillum.plugincore.launcher.managers.config
 
 data class PluginCoreConfig(
     val logs: LogConfig

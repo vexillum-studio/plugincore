@@ -1,5 +1,6 @@
 package com.vexillum.plugincore.util
 
+import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -10,10 +11,13 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 object JsonUtil {
 
     const val JSON_EXTENSION = ".json"
+    const val JSON_GLOB_MATCHER = "*$JSON_EXTENSION"
 
-    val mapper: ObjectMapper = JsonMapper.builder()
+    val mapper: ObjectMapper = JsonMapper
+        .builder()
         .enable(ACCEPT_CASE_INSENSITIVE_ENUMS)
         .build()
+        .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
         .registerModule(KotlinModule.Builder().build())
         .registerModule(JavaTimeModule())
 

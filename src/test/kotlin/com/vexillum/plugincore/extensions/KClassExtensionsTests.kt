@@ -1,8 +1,5 @@
-package com.vexillum.plugincore.manager.config
+package com.vexillum.plugincore.extensions
 
-import com.vexillum.plugincore.extensions.loadResourceAsFile
-import com.vexillum.plugincore.extensions.loadResourceAsStream
-import com.vexillum.plugincore.extensions.loadResourceAsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.notNullValue
@@ -21,10 +18,10 @@ class KClassExtensionsTests {
         val loadedResource = this::class.loadResourceAsString("data/banner.txt")
         assertThat(loadedResource, `is`(notNullValue()))
     }
+
     @Test
     fun `should load a resource from a class as file`() {
         val loadedResource = this::class.loadResourceAsFile("data/banner.txt")
         assertThat(loadedResource, `is`(notNullValue()))
     }
-
 }

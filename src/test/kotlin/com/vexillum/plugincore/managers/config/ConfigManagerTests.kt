@@ -1,14 +1,11 @@
-package com.vexillum.plugincore.manager.config
+package com.vexillum.plugincore.managers.config
 
-import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.extensions.loadResourceAsFile
-import com.vexillum.plugincore.manager.ManagerFactory
+import com.vexillum.plugincore.managerFactory
 import org.bukkit.Material
-import org.junit.jupiter.api.Test
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
+import org.junit.jupiter.api.Test
 
 class ConfigManagerTests {
 
@@ -31,14 +28,10 @@ class ConfigManagerTests {
 
     @Test
     fun `should correctly load a config file`() {
-        val testConfigFile = this::class.loadResourceAsFile("data/testConfig.json")!!
-        val pluginCore = mock<PluginCore> {
-            on { name } doReturn ("TestPlugin")
-            on { logManager } doReturn (mock())
-            on { dataFolder } doReturn (testConfigFile.parentFile)
-        }
+        val testConfigFile = this::class.loadResourceAsFile("data/testConfig.json")
+            ?: error("Must load the file in that location")
 
-        val managerFactory = ManagerFactory(pluginCore)
+        val managerFactory = managerFactory(testConfigFile.parentFile)
 
         val configManager = managerFactory.newConfigManager(
             TestConfig::class,
@@ -60,7 +53,6 @@ class ConfigManagerTests {
             }
             assertThat(list1, `is`(listOf(1, 2, 3)))
             assertThat(material1, `is`(Material.STONE))
-          }
+        }
     }
-
 }

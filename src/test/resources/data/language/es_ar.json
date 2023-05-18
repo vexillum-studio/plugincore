@@ -1,0 +1,6 @@
+{
+  "color1": "&4",
+  "color2": "&4",
+  "value": "123",
+  "message1": "Hola {color1}{value}"
+}
