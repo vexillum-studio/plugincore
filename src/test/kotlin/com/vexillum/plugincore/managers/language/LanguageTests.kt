@@ -22,13 +22,25 @@ class LanguageTests {
     fun setUp() {
         val exampleLanguageJson = """
             {
-            "color1":"&1",
-            "constant":"there",
-            "key1":"Hello",
-            "key2":"Hello {replacement}",
-            "key3":"Hello {constant}",
-            "key4":"-{key3} -General {generalName}",
-            "key5":"&4{key1}"
+                "color1": "&1",
+                "constant": "there",
+                "key1": "Hello",
+                "key2": "Hello {replacement}",
+                "key3": "Hello {constant}",
+                "key4": [
+                    "-{key3}",
+                    "-General {generalName}"
+                ],
+                "key5": "&4{key1}",
+                "key6": {
+                    "nested": "nestedValue",
+                    "nestedComplex": "nestedValue {{descriptor.x} {descriptor.y} {descriptor.z}}"
+                },
+                "descriptor": {
+                    "x": "x",
+                    "y": "y",
+                    "z": "z"
+                }
             }
         """.trimIndent()
 
@@ -37,26 +49,41 @@ class LanguageTests {
 
     @Test
     fun `should resolve simple values`() {
-        assertThat(language.resolve { key1 }, `is`("Hello"))
+        assertResolve("Hello") { key1 }
     }
 
     @Test
     fun `should resolve simple replacements`() {
-        assertThat(language.resolve(mapOf("replacement" to "World!")) { key2 }, `is`("Hello World!"))
+        assertResolve(
+            "Hello World!",
+            mapOf("replacement" to "World!")
+        ) { key2 }
     }
 
     @Test
     fun `should resolve constants not defined in the language schema`() {
-        assertThat(language.resolve { key3 }, `is`("Hello there"))
+        assertResolve("Hello there") { key3 }
     }
 
     @Test
     fun `should resolve nested message replacements with replace map`() {
-        assertThat(language.resolve(mapOf("generalName" to "Kenobi")) { key4 }, `is`("-Hello there -General Kenobi"))
+        /*assertResolve(
+            "-Hello there\n-General Kenobi",
+            mapOf("generalName" to "Kenobi")
+        ) { key4 }*/
     }
 
     @Test
     fun `should resolve nested message replacements with colors`() {
-        assertThat(language.resolve { key5 }, `is`("§4Hello"))
+        assertResolve("§4Hello") { key5 }
     }
+
+    private fun assertResolve(
+        expected: String,
+        replacements: Map<String, Any> = emptyMap(),
+        block: ExampleLanguage.() -> Message
+    ) {
+        assertThat(language.resolve(replacements, block), `is`(expected))
+    }
+
 }

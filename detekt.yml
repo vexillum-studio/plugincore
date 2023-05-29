@@ -1,6 +1,12 @@
 build:
     maxIssues: 10
 
+exceptions:
+    SwallowedException:
+        active: false
+    TooGenericExceptionCaught:
+        active: false
+
 formatting:
     Indentation:
         active: true
@@ -10,6 +16,13 @@ formatting:
         active: false
     MultiLineIfElse:
         active: false
+    MaximumLineLength:
+        maxLineLength: 150
+        ignoreBackTickedIdentifier: true
+
+complexity:
+    NestedBlockDepth:
+        threshold: 5
 
 style:
     MaxLineLength:

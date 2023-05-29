@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.8.0"
+    id("io.gitlab.arturbosch.detekt").version("1.19.0")
     application
 }
 
@@ -33,10 +34,12 @@ dependencies {
     // Sl4j
     implementation("org.slf4j:slf4j-api:2.0.5")
     // Jackson
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.1")
     implementation("com.fasterxml.jackson.core:jackson-core")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    // Detekt
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.18.0-RC2")
     // Mordant
     implementation("com.github.ajalt.mordant:mordant:2.0.0-beta9")
     // Testing
@@ -45,6 +48,13 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     testImplementation("org.hamcrest:hamcrest:2.2")
+}
+
+detekt {
+    autoCorrect = true
+    buildUponDefaultConfig = true
+    config = files("$projectDir/detekt.yml")
+    source = files("src/main/kotlin")
 }
 
 tasks.jar {

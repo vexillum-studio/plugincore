@@ -1,0 +1,19 @@
+package com.vexillum.plugincore.command.processor
+
+import com.vexillum.plugincore.managers.language.LanguageAgent
+
+interface ArgumentProcessor<Sender : LanguageAgent, BaseType : Any, Type : Any> {
+
+    fun process(sender: Sender, value: BaseType): Type
+
+    operator fun <FinalType : Any> plus(
+        processor: ArgumentProcessor<Sender, Type, FinalType>
+    ): ArgumentProcessor<Sender, BaseType, FinalType> =
+        CompoundArgumentProcessor(this, processor)
+
+    /*
+    operator fun plus(
+        other: ArgumentProcessor<Sender, Type, Type>?
+    ): ArgumentProcessor<Sender, BaseType, Type> =
+        if (other != null) plus(other) else this*/
+}

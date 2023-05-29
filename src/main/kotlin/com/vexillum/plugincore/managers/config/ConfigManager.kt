@@ -10,14 +10,14 @@ import java.io.File
 import kotlin.reflect.KClass
 
 class ConfigManager<T : Any> internal constructor(
-    val name: String,
-    private val pluginCore: PluginCore,
+    pluginCore: PluginCore,
+    private val configName: String,
     private val configClass: KClass<T>,
     private val originFolderPath: String,
     private val destinationFolderPath: String
-) {
+) : PluginCore by pluginCore {
 
-    private val destinationFile = File(pluginCore.dataFolder, "/$destinationFolderPath/$name$JSON_EXTENSION")
+    private val destinationFile = File(dataFolder, "/$destinationFolderPath/$configName$JSON_EXTENSION")
     private var config: T = load()
 
     fun save(config: T) {
@@ -26,16 +26,18 @@ class ConfigManager<T : Any> internal constructor(
             writer.writeValue(destinationFile, config)
             this.config = config
         } catch (e: Exception) {
-            pluginCore.logManager.error("Error saving the config file $e")
+            logManager.error("Error saving the config file $e")
         }
     }
 
     fun reload() {
+        val fileName = "$configName$JSON_EXTENSION"
         try {
-            pluginCore.logManager.info("Loading $name$JSON_EXTENSION config...")
+            logManager.info("Loading $fileName config file...")
             config = load()
+            logManager.info("Config file $fileName loaded successfully")
         } catch (e: Exception) {
-            pluginCore.logManager.error("Error loading the config file $e")
+            logManager.error("Error loading the config file $fileName: $e")
         }
     }
 
@@ -43,7 +45,7 @@ class ConfigManager<T : Any> internal constructor(
         try {
             val destinationFolder = destinationFile.parentFile
             if (!destinationFolder.exists() && !destinationFolder.mkdirs()) {
-                pluginCore.logManager.error("Can't create the config container folder")
+                logManager.error("Can't create the config container folder")
             }
             if (!destinationFile.exists()) {
                 copyFromOrigin()
@@ -53,20 +55,20 @@ class ConfigManager<T : Any> internal constructor(
                 is IllegalStateException -> e.message
                 else -> "IO exception copying the origin configuration to the plugin's data folder file: $destinationFolderPath"
             }
-            pluginCore.logManager.error(message)
+            logManager.error(message)
             throw e
         }
         return JsonUtil.mapper.readValue(destinationFile, configClass.java)
     }
 
     private fun copyFromOrigin() {
-        val originPath = "$originFolderPath/$name$JSON_EXTENSION"
-        pluginCore.logManager.info("Copying origin configuration from: $originPath")
+        val originPath = "$originFolderPath/$configName$JSON_EXTENSION"
+        logManager.info("Copying origin configuration from: $originPath")
         val inputStream = this::class.loadResourceAsStream(originPath)
             ?: error("Can't find the origin configuration file from: $originPath")
         inputStream.use {
             destinationFile.createNewFile()
-            inputStream.copyTo(destinationFile)
+            it.copyTo(destinationFile)
         }
     }
 

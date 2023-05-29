@@ -2,12 +2,13 @@ package com.vexillum.plugincore.managers.log
 
 import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.extensions.logger
+import org.bukkit.ChatColor
 import org.slf4j.Logger
 
 class LogManager internal constructor(
-    private val pluginCore: PluginCore
-) {
+    private val pluginCore: PluginCore,
     private val logger: Logger = pluginCore::class.logger()
+) {
 
     fun debug(message: Any?) =
         log(message, logger::debug)
@@ -25,6 +26,6 @@ class LogManager internal constructor(
         log(message, logger::trace)
 
     private fun log(message: Any?, logFn: (String) -> Unit) {
-        logFn(message.toString())
+        logFn(ChatColor.stripColor(message.toString())!!)
     }
 }

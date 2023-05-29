@@ -66,6 +66,7 @@ enum class LocalLanguage(
 
         private const val SEPARATOR = "_"
         private const val LOCALE_SEPARATOR = "-"
+        val DEFAULT = ENGLISH
 
         private val childrenLanguages =
             values()
