@@ -1,12 +1,7 @@
 package com.vexillum.plugincore.managers.language
 
-import com.vexillum.plugincore.extensions.loadResource
-import com.vexillum.plugincore.managerFactory
-import com.vexillum.plugincore.managers.language.LocalLanguage.ARGENTINEAN_SPANISH
-import com.vexillum.plugincore.managers.language.LocalLanguage.AUSTRALIAN_ENGLISH
-import com.vexillum.plugincore.managers.language.LocalLanguage.CHINESE
-import com.vexillum.plugincore.managers.language.LocalLanguage.ENGLISH
-import com.vexillum.plugincore.managers.language.LocalLanguage.SPANISH
+import com.vexillum.plugincore.managers.language.LocalLanguage.*
+import com.vexillum.plugincore.pluginCore
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.notNullValue
@@ -24,13 +19,9 @@ class LanguageManagerTests {
 
     @BeforeEach
     fun setUp() {
-        val testDataFolder = this::class.loadResource("data")?.toFile()
-            ?: error("Must load the file in that location")
-
-        val managerFactory = managerFactory(testDataFolder)
-        languageManager = managerFactory.newLanguageManager(
+        languageManager = pluginCore.managerFactory.newLanguageManager(
             TestLanguage::class,
-            "language",
+            "data/language",
             "language"
         )
         assertDoesNotThrow("Should load the languages") {

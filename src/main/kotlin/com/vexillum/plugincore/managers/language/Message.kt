@@ -21,7 +21,6 @@ internal data class MessageBlock(val block: String) : NavigableMessage {
     override fun resolve(replacements: Map<String, Any>) = block
 
     override fun toString() = block
-
 }
 
 internal data class ParameterBlock(private val enclosed: String) : NavigableMessage {

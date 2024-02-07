@@ -68,14 +68,15 @@ class LanguageManager<T : Any> internal constructor(
             originLanguages
                 .filterKeys { it !in loadedLocaleLanguages }
                 .forEach { (localLanguage, originLanguage) ->
-                    val destinationFilePath = destinationPath.resolve(originLanguage.fileName)
+                    val fileName = originLanguage.fileName
+                    val destinationFilePath = destinationPath.resolve(fileName)
                     if (!destinationFilePath.exists()) {
-                        logManager.info("Trying to import origin language file: ${originLanguage.fileName}")
+                        logManager.info("Trying to import origin language file: $fileName")
                         loadLanguage(localLanguage, originLanguage)
                         originLanguage.copyTo(destinationFilePath, true)
-                        logManager.info("Imported missing origin language file: ${originLanguage.fileName}")
+                        logManager.info("Imported missing origin language file: $fileName")
                     } else {
-                        logManager.warning("Loading origin language file: ${originLanguage.fileName} as fallback")
+                        logManager.warning("Loading origin language file: $fileName as fallback")
                         loadLanguage(localLanguage, originLanguage)
                     }
                 }
@@ -83,7 +84,8 @@ class LanguageManager<T : Any> internal constructor(
     }
 
     private fun useOriginPath(block: (Path) -> Unit) {
-        val tempFile = File(dataFolder, "/$destinationFolderPath/origin")
+        val tempFile = File(dataFolder, "$destinationFolderPath${File.separator}$TEMP_PATH")
+
         try {
             // Delete origin folder if exists and then create a fresh one
             tempFile.deleteRecursively()
@@ -94,7 +96,6 @@ class LanguageManager<T : Any> internal constructor(
                     "Origin folder must be a directory"
                 }
             }
-
             pluginCore::class.copyResourceTo(originFolderPath, tempPath)
             block(tempPath)
         } finally {
@@ -103,7 +104,7 @@ class LanguageManager<T : Any> internal constructor(
     }
 
     private fun createDestinationFolder() {
-        val folderName = "$name/$destinationFolderPath"
+        val folderName = "$name${File.separator}$destinationFolderPath"
         try {
             if (File(dataFolder, destinationFolderPath).mkdirs()) {
                 logManager.info("Created language folder in: $folderName")
@@ -146,4 +147,8 @@ class LanguageManager<T : Any> internal constructor(
                     throw e
                 }
             }
+
+    companion object {
+        private const val TEMP_PATH = "origin"
+    }
 }

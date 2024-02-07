@@ -1,7 +1,6 @@
 package com.vexillum.plugincore.managers.config
 
-import com.vexillum.plugincore.extensions.loadResourceAsFile
-import com.vexillum.plugincore.managerFactory
+import com.vexillum.plugincore.pluginCore
 import org.bukkit.Material
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -28,16 +27,14 @@ class ConfigManagerTests {
 
     @Test
     fun `should correctly load a config file`() {
-        val testConfigFile = this::class.loadResourceAsFile("data/testConfig.json")
-            ?: error("Must load the file in that location")
 
-        val managerFactory = managerFactory(testConfigFile.parentFile)
+        val managerFactory = pluginCore.managerFactory
 
         val configManager = managerFactory.newConfigManager(
             TestConfig::class,
             "testConfig",
             "data",
-            "data"
+            "origin"
         )
 
         val loadedConfig = configManager()

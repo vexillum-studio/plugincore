@@ -10,7 +10,7 @@ group = "com.vexillum"
 version = "1.0-SNAPSHOT"
 
 val jarName = "PluginCore"
-val spigotVersion = "1.19.3-R0.1-SNAPSHOT"
+val spigotVersion = "1.20.4-R0.1-SNAPSHOT"
 val mainClass = "com.vexillum.plugincore.launcher.PluginCoreLauncher"
 
 repositories {
@@ -18,9 +18,6 @@ repositories {
     mavenCentral()
     maven {
         url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-        mavenContent {
-            releasesOnly()
-        }
     }
     maven("https://oss.sonatype.org/content/repositories/snapshots")
     maven("https://oss.sonatype.org/content/repositories/central")

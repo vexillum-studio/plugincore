@@ -20,9 +20,9 @@ interface PluginCore : Plugin, Listener {
 
 abstract class PluginCoreBase : JavaPlugin(), PluginCore {
 
-    final override val managerFactory = ManagerFactory(this)
-    override val logManager = managerFactory.newLogManager()
-    override val commandManager = managerFactory.commandManager()
+    final override val managerFactory: ManagerFactory = ManagerFactory(this)
+    override val logManager: LogManager = managerFactory.newLogManager()
+    override val commandManager: CommandManager = managerFactory.commandManager()
 
     final override fun onEnable() {
         this::class.loadResourceAsString(DEFAULT_BANNER_PATH)?.let {

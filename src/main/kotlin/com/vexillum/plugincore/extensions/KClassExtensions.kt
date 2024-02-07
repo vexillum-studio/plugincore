@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.InputStream
 import java.net.URL
-import java.net.URLClassLoader
-import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
@@ -49,7 +47,7 @@ fun KClass<*>.loadResource(path: String): Path? =
  * Example: data/config.json
  */
 fun KClass<*>.loadResourceAsURL(path: String): URL? =
-    java.getResource("/$path")
+    java.getResource("${File.separator}$path")
 
 fun KClass<*>.jarURL(): URL =
     java.protectionDomain
@@ -57,12 +55,8 @@ fun KClass<*>.jarURL(): URL =
         .location
 
 fun KClass<*>.copyResourceTo(resourcePath: String, destination: Path) {
-    val jarUrl = jarURL()
-    val classLoader = URLClassLoader(arrayOf(jarUrl))
-    val fileSystem = FileSystems.newFileSystem(Path.of(jarUrl.toURI()), classLoader)
-    val sourcePath = fileSystem.getPath(resourcePath)
-
-    Files.walk(sourcePath).use { paths ->
+    val sourcePath = loadResource(resourcePath) ?: error("No resource found at: $resourcePath")
+    Files.list(sourcePath).use { paths ->
         paths
             .filter { Files.isRegularFile(it) }
             .forEach { path ->
