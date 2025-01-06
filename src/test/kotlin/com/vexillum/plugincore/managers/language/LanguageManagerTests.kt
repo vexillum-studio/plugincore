@@ -40,7 +40,7 @@ class LanguageManagerTests {
     }
 
     @Test
-    fun `should get a sibling language if the asked one is not found`() {
+    fun `should get a sibling language if the requested language is not found`() {
         assertThat(languageManager.language(SPANISH).localeLanguage, `is`(ARGENTINEAN_SPANISH))
     }
 

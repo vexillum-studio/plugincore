@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.8.0"
+    kotlin("jvm") version "1.9.0"
     id("io.gitlab.arturbosch.detekt").version("1.19.0")
     application
 }
@@ -10,7 +10,7 @@ group = "com.vexillum"
 version = "1.0-SNAPSHOT"
 
 val jarName = "PluginCore"
-val spigotVersion = "1.20.4-R0.1-SNAPSHOT"
+val spigotVersion = "1.21.4-R0.1-SNAPSHOT"
 val mainClass = "com.vexillum.plugincore.launcher.PluginCoreLauncher"
 
 repositories {

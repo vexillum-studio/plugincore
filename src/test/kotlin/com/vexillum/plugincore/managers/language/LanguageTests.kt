@@ -34,7 +34,7 @@ class LanguageTests {
                 "key5": "&4{key1}",
                 "key6": {
                     "nested": "nestedValue",
-                    "nestedComplex": "nestedValue {{descriptor.x} {descriptor.y} {descriptor.z}}"
+                    "nestedComplex": "A chest is located at {descriptor.x} {x} {descriptor.y} {y} {descriptor.z} {z}"
                 },
                 "descriptor": {
                     "x": "x",

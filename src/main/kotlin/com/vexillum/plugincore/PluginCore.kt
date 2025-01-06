@@ -35,7 +35,7 @@ abstract class PluginCoreBase : JavaPlugin(), PluginCore {
 
     final override fun onDisable() {
         disable()
-        commandManager.unregisterAll()
+        managerFactory.stop()
     }
 
     abstract fun enable()

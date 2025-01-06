@@ -13,14 +13,18 @@ class ManagerFactory(
 
     private val configManagers = mutableMapOf<KClass<*>, ConfigManager<*>>()
     private val languageManagers = mutableMapOf<KClass<*>, LanguageManager<*>>()
+    private val commandManager by lazy {
+        CommandManager(pluginCore)
+    }
 
     internal fun start() {
         configManagers.values.forEach { it.reload() }
         languageManagers.values.forEach { it.reload() }
     }
 
-    private val commandManager by lazy {
-        CommandManager(pluginCore)
+    internal fun stop() {
+        configManagers.values.forEach { it.saveConfig() }
+        commandManager.unregisterAll()
     }
 
     fun newLogManager() =
@@ -51,6 +55,21 @@ class ManagerFactory(
             originFolderPath = originFolderPath,
             destinationFolderPath = destinationFolderPath
         ).also { languageManagers[languageClass] = it }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> config(configClass: KClass<T>): ConfigManager<T> =
+        configManagers[configClass] as? ConfigManager<T>
+            ?: error("No ConfigManager registered for $configClass")
+
+    inline fun <reified T : Any> config() =
+        config(T::class)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> language(languageClass: KClass<T>): LanguageManager<T> =
+        languageManagers[languageClass] as? LanguageManager<T> ?: error("No LanguageManager registered for $languageClass")
+
+    inline fun <reified T : Any> language() =
+        language(T::class)
 
     fun commandManager() =
         commandManager
