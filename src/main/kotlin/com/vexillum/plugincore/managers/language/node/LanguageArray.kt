@@ -9,6 +9,9 @@ internal class LanguageArray(
 ) : LanguageIdentity(), MutableCollection<LanguageValue> by collection {
 
     override val value get() = joinToString(separator = "\n")
+    
+    override fun toNavigableMessage(): Message =
+        MessageList(map { it.toNavigableMessage() })
 
     override fun toString() = toList().toString()
 

@@ -14,25 +14,29 @@ import com.vexillum.plugincore.managers.language.node.LanguageIdentity
 import com.vexillum.plugincore.managers.language.node.LanguageObject
 import com.vexillum.plugincore.managers.language.node.LanguageValue
 import com.vexillum.plugincore.managers.language.node.ScopedNode
-import com.vexillum.plugincore.util.JsonUtil
+import com.vexillum.plugincore.util.JsonUtil.mapper as JsonMapper
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
 class LanguageDeserializer<T : Any>(
     private val languageClass: KClass<T>
-) : JsonDeserializer<Message>() {
+) {
 
-    private val mapper = JsonUtil.mapper
-        .copy()
-        .registerModule(
-            SimpleModule().addDeserializer(Message::class.java, this)
-        )
+    private val mapper =
+        JsonMapper
+            .copy()
+            .registerModule(
+                SimpleModule().apply {
+                    addDeserializer(Message::class.java, TypeDeserializer())
+                    addDeserializer(MessageList::class.java, TypeDeserializer())
+                }
+            )
 
     private val valueIndex = AtomicInteger()
     private val languageIdentities = mutableMapOf<Int, LanguageIdentity>()
 
-    override fun deserialize(p: JsonParser, context: DeserializationContext?): Message {
+    private fun deserialize(p: JsonParser): Message {
         val node = p.codec.readTree<JsonNode>(p)
         val id = node.get(ID_FIELD).asInt()
         val languageIdentity = languageIdentities.getValue(id)
@@ -77,6 +81,7 @@ class LanguageDeserializer<T : Any>(
                     }
                     languageObject
                 }
+
                 node is ArrayNode -> {
                     val languageArray = LanguageArray(parent!!, valueIndex.incrementAndGet())
                     for (innerValue in iterator()) {
@@ -88,9 +93,11 @@ class LanguageDeserializer<T : Any>(
                     }
                     languageArray
                 }
+
                 isValueNode || isTextual -> {
                     LanguageValue(parent!!, valueIndex.incrementAndGet(), asText())
                 }
+
                 else -> error("The language properties can only be defined as a string")
             }.also { createdNode ->
                 if (createdNode is LanguageIdentity) {
@@ -98,6 +105,16 @@ class LanguageDeserializer<T : Any>(
                 }
             }
         }
+
+    private inner class TypeDeserializer<M : Message> : JsonDeserializer<M>() {
+
+        @Suppress("UNCHECKED_CAST")
+        override fun deserialize(parser: JsonParser, context: DeserializationContext?): M {
+            val message = deserialize(parser)
+            return message as? M ?: error("Unable to parse, expected Message or MessageList language node")
+        }
+
+    }
 
     companion object {
         private const val ID_FIELD = "id"

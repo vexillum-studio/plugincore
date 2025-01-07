@@ -14,6 +14,24 @@ class Message internal constructor(
         messages.joinToString(separator = "") {
             it.resolve(replacements)
         }
+    }
+
+    override fun toString() = raw
+
+}
+
+class MessageList(
+    private val internalMessages: List<Message>
+) : Message(internalMessages.toTypedArray()), List<Message> by internalMessages {
+
+    override val raw = messages.joinToString(separator = "\n") {it.raw}
+
+    override fun resolve(replacements: Map<String, Any>) =
+        messages.joinToString(separator = "\n") {
+            it.resolve(replacements)
+        }
+
+    override fun toString() = raw
 }
 
 internal data class MessageBlock(val block: String) : NavigableMessage {

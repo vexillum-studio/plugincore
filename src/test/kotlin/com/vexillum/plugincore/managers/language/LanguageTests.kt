@@ -14,8 +14,15 @@ class LanguageTests {
         val key1: Message,
         val key2: Message,
         val key3: Message,
-        val key4: Message,
-        val key5: Message
+        val key4: MessageList,
+        val key5: Message,
+        val key6: KeySix,
+        val key7: MessageList
+    )
+
+    data class KeySix(
+        val nested: Message,
+        val nestedComplex: Message
     )
 
     private lateinit var language: Language<ExampleLanguage>
@@ -38,6 +45,14 @@ class LanguageTests {
                     "nested": "nestedValue",
                     "nestedComplex": "A chest is located at {descriptor.x} {x} {descriptor.y} {y} {descriptor.z} {z}"
                 },
+                "key7": [
+                    "7.1",
+                    "7.2",
+                    "7.3",
+                    "7.4",
+                    "7.5",
+                    "{key6.nested} 7.6"
+                ],
                 "descriptor": {
                     "x": "x",
                     "y": "y",
@@ -69,15 +84,29 @@ class LanguageTests {
 
     @Test
     fun `should resolve nested message replacements with replace map`() {
-        /*assertResolve(
+        assertResolve(
             "-Hello there\n-General Kenobi",
             mapOf("generalName" to "Kenobi")
-        ) { key4 }*/
+        ) { key4 }
     }
 
     @Test
     fun `should resolve nested message replacements with colors`() {
         assertResolve("§4Hello") { key5 }
+    }
+
+    @Test
+    fun `should resolve list messages by index`() {
+        assertResolve("7.1") { key7.elementAt(0) }
+        assertResolve("7.2") { key7.elementAt(1) }
+        assertResolve("7.3") { key7.elementAt(2) }
+        assertResolve("7.4") { key7.elementAt(3) }
+        assertResolve("7.5") { key7.elementAt(4) }
+    }
+
+    @Test
+    fun `should resolve with scope inside list messages`() {
+        assertResolve("nestedValue 7.6") { key7.last() }
     }
 
     private fun assertResolve(
