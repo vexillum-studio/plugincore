@@ -1,6 +1,8 @@
 package com.vexillum.plugincore.managers.language
 
 import com.vexillum.plugincore.languageFromJson
+import com.vexillum.plugincore.managers.config.ConfigManagerTests.TestConfig
+import com.vexillum.plugincore.pluginCore
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.BeforeEach

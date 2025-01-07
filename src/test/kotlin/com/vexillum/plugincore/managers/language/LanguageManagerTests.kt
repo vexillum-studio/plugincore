@@ -22,11 +22,17 @@ class LanguageManagerTests {
         languageManager = pluginCore.managerFactory.newLanguageManager(
             TestLanguage::class,
             "data/language",
-            "language"
+            "language-test"
         )
         assertDoesNotThrow("Should load the languages") {
             languageManager.reload()
         }
+    }
+
+    @Test
+    fun `should correctly load a language and resolve a message from file`() {
+        val language = languageManager.language(ENGLISH)
+        assertThat(language.resolve { message1 }, `is`("Hello §4123"))
     }
 
     @Test

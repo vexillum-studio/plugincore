@@ -10,7 +10,9 @@ class KClassExtensionsTests {
     @Test
     fun `should load a resource from a class as stream`() {
         val loadedResource = this::class.loadResourceAsStream("data/banner.txt")
-        assertThat(loadedResource, `is`(notNullValue()))
+        loadedResource?.use {
+            assertThat(loadedResource, `is`(notNullValue()))
+        }
     }
 
     @Test

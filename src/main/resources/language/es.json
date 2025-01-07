@@ -1,0 +1,43 @@
+{
+  "other": {
+    "success": "Yeah madafaca",
+    "success3": "Yeah text {{command.descriptor.x} {command.descriptor.y} {command.descriptor.z}}",
+    "xd": "{command.errorColor}testing {command.errorAccent}{other.success} {param} {param2}"
+  },
+  "test": [
+    "testing",
+    "testing again",
+    "{command.errorColor}testing {command.errorAccent}{other.success} {param} {param2}"
+  ],
+  "colors": {
+    "primary": "&7"
+  },
+  "command": {
+    "prefix": "&8[&7{pluginName}&8]&4: ",
+    "errorColor": "&c",
+    "errorAccent": "&4",
+    "permissionMessage": "You don't have permission to execute this command",
+    "transformMessage": "No puedes convertir '{value}' a {type}",
+    "parsing": {
+      "boolean": "'{value}' can't be parsed as a boolean value",
+      "integer": "'{value}' can't be parsed as an integer value",
+      "double": "'{value}' can't be parsed as a double value",
+      "enum": "'{value}' must be one of the next values: {possibleValues}",
+      "player": "Player '{name}' was not found",
+      "world": "The world '{value}' was not found",
+      "vector": "Invalid definition, use valid numbers for: {descriptor.vector}",
+      "location": "Invalid location, use: {descriptor.vector}"
+    },
+    "descriptor": {
+      "color": "&f",
+      "accent": "&c",
+      "prefix": "&c<",
+      "postfix": "&c>",
+      "world": "world",
+      "x": "x",
+      "y": "y",
+      "z": "z",
+      "vector": "<{x}> <{y}> <{z}>"
+    }
+  }
+}

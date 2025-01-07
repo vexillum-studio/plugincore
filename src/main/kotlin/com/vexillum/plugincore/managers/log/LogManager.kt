@@ -10,22 +10,29 @@ class LogManager internal constructor(
     private val logger: Logger = pluginCore::class.logger()
 ) {
 
-    fun debug(message: Any?) =
-        log(message, logger::debug)
+    fun debug(vararg message: Any?) =
+        log(logger::debug, message)
 
-    fun info(message: Any?) =
-        log(message, logger::info)
+    fun info(vararg message: Any?) =
+        log(logger::info, message)
 
-    fun warning(message: Any?) =
-        log(message, logger::warn)
+    fun warning(vararg message: Any?) =
+        log(logger::warn, message)
 
-    fun error(message: Any?) =
-        log(message, logger::error)
+    fun error(vararg message: Any?) =
+        log(logger::error, message)
 
-    fun trace(message: Any?) =
-        log(message, logger::trace)
+    fun trace(vararg message: Any?) =
+        log(logger::trace, message)
 
-    private fun log(message: Any?, logFn: (String) -> Unit) {
-        logFn(ChatColor.stripColor(message.toString())!!)
+    private fun log(logFn: (String) -> Unit, message: Array<out Any?>) {
+        val completeMessage = message
+            .joinToString(separator = SEPARATOR)
+            .let { ChatColor.stripColor(it)!! }
+        logFn(completeMessage)
+    }
+
+    companion object {
+        private const val SEPARATOR = " "
     }
 }

@@ -40,18 +40,20 @@ class LanguageDeserializer<T : Any>(
     }
 
     fun parseLanguage(languageStream: InputStream): T {
-        // First pass to traverse tree structure
-        val languageNode = mapper.readTree(languageStream)
-        val languageStructure = parseNode(languageNode)
-        // Second pass to load messages
-        return try {
-            mapper.convertValue(languageStructure, languageClass.java)
-        } catch (e: Exception) {
-            val cause = e.cause
-            if (cause is JsonMappingException) {
-                throw InvalidLanguageException(cause)
+        languageStream.use {
+            // First pass to traverse tree structure
+            val languageNode = mapper.readTree(languageStream)
+            val languageStructure = parseNode(languageNode)
+            // Second pass to load messages
+            return try {
+                mapper.convertValue(languageStructure, languageClass.java)
+            } catch (e: Exception) {
+                val cause = e.cause
+                if (cause is JsonMappingException) {
+                    throw InvalidLanguageException(cause)
+                }
+                throw e
             }
-            throw e
         }
     }
 

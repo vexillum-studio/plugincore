@@ -8,6 +8,9 @@ class Language<out T : Any> private constructor(
     internal val language: T
 ) {
 
+    override fun toString() =
+        "Language($localeLanguage)"
+
     companion object {
 
         fun <T : Any> create(

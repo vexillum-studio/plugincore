@@ -8,12 +8,13 @@ import com.vexillum.plugincore.managers.language.LocalLanguage.ENGLISH
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 
-private abstract class TestReference: PluginCore
+private abstract class TestReference : PluginCore
 
 val pluginCore: PluginCore
     get() {
-        val testDataFolder = TestReference::class.loadResource("data")?.toFile()
-            ?: error("Must load the file in that location")
+        val testDataFolder = TestReference::class.loadResource("data") {
+            it.toFile()
+        }
         return mock<TestReference> {
             on { managerFactory } doReturn ManagerFactory(it)
             on { logManager } doReturn mock()

@@ -63,7 +63,6 @@ class LanguageManager<T : Any> internal constructor(
             destinationLanguages.forEach(this::loadLanguage)
 
             val loadedLocaleLanguages = languages.keys
-
             // Complement if needed or copying files from origin to destination
             originLanguages
                 .filterKeys { it !in loadedLocaleLanguages }
@@ -85,12 +84,10 @@ class LanguageManager<T : Any> internal constructor(
 
     private fun useOriginPath(block: (Path) -> Unit) {
         val tempFile = File(dataFolder, "$destinationFolderPath${File.separator}$TEMP_PATH")
-
         try {
             // Delete origin folder if exists and then create a fresh one
             tempFile.deleteRecursively()
             tempFile.mkdirs()
-
             val tempPath = tempFile.toPath().also {
                 require(it.isDirectory()) {
                     "Origin folder must be a directory"
@@ -131,22 +128,20 @@ class LanguageManager<T : Any> internal constructor(
             .toMap()
 
     private fun loadLanguage(localLanguage: LocalLanguage, path: Path) =
-        path
-            .inputStream()
-            .use { inputStream ->
+        path.inputStream().let { inputStream ->
+            try {
                 try {
-                    try {
-                        val language = Language.create(localLanguage, inputStream, languageClass)
-                        languages[localLanguage] = language
-                        logManager.info("${localLanguage.languageName} language successfully loaded")
-                    } catch (e: InvalidLanguageException) {
-                        e.throwWithFileName(path.absolutePathString())
-                    }
-                } catch (e: Exception) {
-                    logManager.error("Failed to load language ${path.name}:")
-                    throw e
+                    val language = Language.create(localLanguage, inputStream, languageClass)
+                    languages[localLanguage] = language
+                    logManager.info("${localLanguage.languageName} language successfully loaded")
+                } catch (e: InvalidLanguageException) {
+                    e.throwWithFileName(path.absolutePathString())
                 }
+            } catch (e: Exception) {
+                logManager.error("Failed to load language ${path.name}:")
+                throw e
             }
+        }
 
     companion object {
         private const val TEMP_PATH = "origin"
