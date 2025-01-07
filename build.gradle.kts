@@ -31,9 +31,10 @@ dependencies {
     // Sl4j
     implementation("org.slf4j:slf4j-api:2.0.5")
     // Jackson
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.1")
     implementation("com.fasterxml.jackson.core:jackson-core")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.2")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     // Detekt
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.18.0-RC2")
