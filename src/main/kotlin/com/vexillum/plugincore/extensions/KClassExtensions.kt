@@ -66,7 +66,7 @@ fun <R> KClass<*>.loadResource(
  * Example: data/config.json
  */
 fun KClass<*>.loadResourceAsURL(path: String): URL? =
-    java.getResource("${File.separator}$path")
+    java.getResource("/$path")
 
 fun KClass<*>.jarURL(): URL =
     java.protectionDomain
