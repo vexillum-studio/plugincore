@@ -14,10 +14,10 @@ import com.vexillum.plugincore.managers.language.node.LanguageIdentity
 import com.vexillum.plugincore.managers.language.node.LanguageObject
 import com.vexillum.plugincore.managers.language.node.LanguageValue
 import com.vexillum.plugincore.managers.language.node.ScopedNode
-import com.vexillum.plugincore.util.JsonUtil.mapper as JsonMapper
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
+import com.vexillum.plugincore.util.JsonUtil.mapper as JsonMapper
 
 class LanguageDeserializer<T : Any>(
     private val languageClass: KClass<T>
@@ -113,7 +113,6 @@ class LanguageDeserializer<T : Any>(
             val message = deserialize(parser)
             return message as? M ?: error("Unable to parse, expected Message or MessageList language node")
         }
-
     }
 
     companion object {

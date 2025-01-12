@@ -1,8 +1,6 @@
 package com.vexillum.plugincore.managers.language
 
 import com.vexillum.plugincore.languageFromJson
-import com.vexillum.plugincore.managers.config.ConfigManagerTests.TestConfig
-import com.vexillum.plugincore.pluginCore
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.BeforeEach
@@ -97,11 +95,11 @@ class LanguageTests {
 
     @Test
     fun `should resolve list messages by index`() {
-        assertResolve("7.1") { key7.elementAt(0) }
-        assertResolve("7.2") { key7.elementAt(1) }
-        assertResolve("7.3") { key7.elementAt(2) }
-        assertResolve("7.4") { key7.elementAt(3) }
-        assertResolve("7.5") { key7.elementAt(4) }
+        assertResolve("7.1") { key7[0] }
+        assertResolve("7.2") { key7[1] }
+        assertResolve("7.3") { key7[2] }
+        assertResolve("7.4") { key7[3] }
+        assertResolve("7.5") { key7[4] }
     }
 
     @Test
