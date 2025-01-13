@@ -52,7 +52,7 @@ detekt {
     autoCorrect = true
     buildUponDefaultConfig = true
     config = files("$projectDir/detekt.yml")
-    source = files("src/main/kotlin")
+    source  = files("src/main/kotlin", "src/test/kotlin")
 }
 
 tasks.jar {

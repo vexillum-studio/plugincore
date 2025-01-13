@@ -59,5 +59,4 @@ class LanguageManagerTests {
     fun `should get EN language by default if the requested is not loaded and no related one is found`() {
         assertThat(languageManager.language(CHINESE).localeLanguage, `is`(ENGLISH))
     }
-
 }

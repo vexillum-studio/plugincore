@@ -15,12 +15,19 @@ class LanguageTests {
         val key4: MessageList,
         val key5: Message,
         val key6: KeySix,
-        val key7: MessageList
+        val key7: MessageList,
+        val key8: Message,
     )
 
     data class KeySix(
         val nested: Message,
-        val nestedComplex: Message
+        val nestedComplex: Message,
+        val nestedObject: NestedObject,
+    )
+
+    data class NestedObject(
+        val `object`: Message,
+        val newObject: Message
     )
 
     private lateinit var language: Language<ExampleLanguage>
@@ -41,7 +48,11 @@ class LanguageTests {
                 "key5": "&4{key1}",
                 "key6": {
                     "nested": "nestedValue",
-                    "nestedComplex": "A chest is located at {descriptor.x} {x} {descriptor.y} {y} {descriptor.z} {z}"
+                    "nestedComplex": "A chest is located at {descriptor.x} {x} {descriptor.y} {y} {descriptor.z} {z}",
+                    "nestedObject": {
+                       "object": "{color1}Hello",
+                       "newObject": "Descriptor is {descriptor.x} and Nested is {nested}"
+                    }
                 },
                 "key7": [
                     "7.1",
@@ -51,6 +62,7 @@ class LanguageTests {
                     "7.5",
                     "{key6.nested} 7.6"
                 ],
+                "key8": "{color1}{key1} {key6.nested} 7.6 {key6.nestedComplex} 7.6 ",
                 "descriptor": {
                     "x": "x",
                     "y": "y",
@@ -58,7 +70,6 @@ class LanguageTests {
                 }
             }
         """.trimIndent()
-
         language = languageFromJson(exampleLanguageJson)
     }
 
@@ -107,6 +118,19 @@ class LanguageTests {
         assertResolve("nestedValue 7.6") { key7.last() }
     }
 
+    @Test
+    fun `should resolve various messages without replacements`() {
+        assertResolve("§1Hello nestedValue 7.6 A chest is located at x {x} y {y} z {z} 7.6 ") {
+            key8
+        }
+    }
+
+    @Test
+    fun `should resolve simple message and nested object`() {
+        assertResolve("§1Hello") { key6.nestedObject.`object` }
+        assertResolve("Descriptor is x and Nested is nestedValue") { key6.nestedObject.newObject }
+    }
+
     private fun assertResolve(
         expected: String,
         replacements: Map<String, Any> = emptyMap(),
@@ -114,5 +138,4 @@ class LanguageTests {
     ) {
         assertThat(language.resolve(replacements, block), `is`(expected))
     }
-
 }
