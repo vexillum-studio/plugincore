@@ -1,6 +1,8 @@
 package com.vexillum.plugincore.managers.language.node
 
 import com.fasterxml.jackson.annotation.JsonValue
+import com.vexillum.plugincore.managers.language.Message
+import com.vexillum.plugincore.managers.language.MessageList
 
 internal class LanguageArray(
     override val parent: LanguageContainer,
@@ -9,6 +11,9 @@ internal class LanguageArray(
 ) : LanguageIdentity(), MutableCollection<LanguageValue> by collection {
 
     override val value get() = joinToString(separator = "\n")
+
+    override fun toNavigableMessage(): Message =
+        MessageList(map { it.toNavigableMessage() })
 
     override fun toString() = toList().toString()
 

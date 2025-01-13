@@ -88,7 +88,7 @@ internal abstract class LanguageIdentity : ScopedNode() {
             ChatColor.translateAlternateColorCodes(COLOR_CHAR, replacedMessage).also { resolved = it }
         }
 
-    fun toNavigableMessage(): Message {
+    open fun toNavigableMessage(): Message {
         val resolvedMessage = resolve()
         val blocks = if (argumentRanges.isEmpty()) {
             arrayOf(MessageBlock(resolvedMessage))
