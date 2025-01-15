@@ -17,8 +17,11 @@ class ConfigManager<T : Any> internal constructor(
     private val destinationFolderPath: String
 ) : PluginCore by pluginCore {
 
-    private val destinationFile = File(dataFolder, "/$destinationFolderPath/$configName$JSON_EXTENSION")
-    private var config: T = load()
+    private val destinationFile by lazy {
+        File(plugin.dataFolder, "/$destinationFolderPath/$configName$JSON_EXTENSION")
+    }
+
+    private lateinit var config: T
 
     fun save(config: T) {
         try {
@@ -72,5 +75,10 @@ class ConfigManager<T : Any> internal constructor(
         }
     }
 
-    operator fun invoke() = config
+    operator fun invoke(): T {
+        if (!::config.isInitialized) {
+            config = load()
+        }
+        return config
+    }
 }

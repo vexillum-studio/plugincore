@@ -4,7 +4,7 @@ import com.vexillum.plugincore.command.argument.VectorArgument.VectorDescriptor
 import com.vexillum.plugincore.command.extractor.DoubleExtractor
 import com.vexillum.plugincore.command.extractor.WorldExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
-import com.vexillum.plugincore.launcher.PluginCoreLauncher
+import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import org.bukkit.Location
 import org.bukkit.World
@@ -34,7 +34,7 @@ open class LocationArgument<Sender : LanguageAgent>(
         companion object {
 
             fun of(agent: LanguageAgent) =
-                PluginCoreLauncher.instance.withAgent(agent) {
+                pluginCoreInstance.withAgent(agent) {
                     LocationDescriptor(
                         world = resolve { command.descriptor.world },
                         vector = VectorDescriptor.of(agent)

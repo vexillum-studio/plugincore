@@ -1,25 +1,25 @@
 package com.vexillum.plugincore.launcher
 
 import com.vexillum.plugincore.PluginCoreBase
+import com.vexillum.plugincore.PluginCoreBoot
 import com.vexillum.plugincore.command.argument.LocationArgument
 import com.vexillum.plugincore.command.argument.PlayerArgument
 import com.vexillum.plugincore.command.argument.RelativeLocationArgument
 import com.vexillum.plugincore.extensions.disablePlugin
+import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
 import com.vexillum.plugincore.launcher.managers.config.PluginCoreConfig
 import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
 import com.vexillum.plugincore.managers.language.Language
-import com.vexillum.plugincore.managers.language.LanguageContext
+import com.vexillum.plugincore.managers.language.LanguageAgent
 import com.vexillum.plugincore.managers.language.LocalLanguage
+import com.vexillum.plugincore.managers.language.Message
+import com.vexillum.plugincore.managers.language.context.LanguageContext
 
 fun main(args: Array<String>) {
     println(args)
 }
 
 class PluginCoreLauncher : PluginCoreBase(), LanguageContext<PluginCoreLanguage> {
-
-    init {
-        instance = this
-    }
 
     val configManager = managerFactory.newConfigManager(
         PluginCoreConfig::class,
@@ -77,7 +77,10 @@ class PluginCoreLauncher : PluginCoreBase(), LanguageContext<PluginCoreLanguage>
             addSubCommand {
                 name = "test"
                 addUsage {
-                    it.sendMessage(instance, mapOf("value" to "peras", "type" to "manzanas")) { command.transformMessage }
+                    it.sendMessage(
+                        pluginCoreInstance,
+                        mapOf("value" to "peras", "type" to "manzanas")
+                    ) { command.transformMessage }
                 }
             }
         }
@@ -86,18 +89,27 @@ class PluginCoreLauncher : PluginCoreBase(), LanguageContext<PluginCoreLanguage>
     override fun afterEnable() {
         if (languageManager.loadedLanguages.isEmpty()) {
             logManager.error("PluginCore has been disabled due to not being able to load the default languages")
-            disablePlugin()
+            plugin.disablePlugin()
         }
     }
 
     override fun disable() {
     }
 
-    companion object {
-        lateinit var instance: PluginCoreLauncher
-            private set
-    }
-
     override fun language(localLanguage: LocalLanguage): Language<PluginCoreLanguage> =
         languageManager.language(localLanguage)
+
+    companion object {
+        internal lateinit var pluginCoreInstance: PluginCoreLauncher
+    }
 }
+
+internal fun LanguageAgent.defaultCommandMessage(
+    replacements: Map<String, Any> = emptyMap(),
+    block: PluginCoreLanguage.() -> Message
+): String =
+    pluginCoreInstance.withAgent(this) {
+        resolve(replacements, block)
+    }
+
+class Launcher : PluginCoreBoot(PluginCoreLauncher())

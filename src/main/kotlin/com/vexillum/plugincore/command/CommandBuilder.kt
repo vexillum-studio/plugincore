@@ -9,6 +9,7 @@ class CommandBuilder<Sender : LanguageAgent> internal constructor(
     private val pluginCore: PluginCore
 ) {
 
+    private var startToken: String = Command.SLASH
     lateinit var name: CommandName
     private var aliases: MutableSet<CommandName> = mutableSetOf()
     private var description: ((Sender) -> String)? = null
@@ -97,6 +98,7 @@ class CommandBuilder<Sender : LanguageAgent> internal constructor(
     fun build(): Command<Sender> {
         require(::name.isInitialized) { "The property name must be defined" }
         return SimpleCommand(
+            startToken,
             name,
             aliases,
             description,

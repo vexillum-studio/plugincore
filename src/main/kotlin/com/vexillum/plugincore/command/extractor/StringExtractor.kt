@@ -3,7 +3,7 @@ import com.vexillum.plugincore.managers.language.LanguageAgent
 
 open class StringExtractor<Sender : LanguageAgent>(
     override val descriptor: (LanguageAgent) -> String,
-) : ArgumentExtractor<Sender, String> {
+) : BaseArgumentExtractor<Sender, String>() {
 
     override val extractor = { _: Sender, value: String ->
         value

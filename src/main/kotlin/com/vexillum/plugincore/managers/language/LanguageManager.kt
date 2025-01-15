@@ -2,6 +2,7 @@ package com.vexillum.plugincore.managers.language
 
 import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.extensions.copyResourceTo
+import com.vexillum.plugincore.managers.language.context.LanguageContext
 import com.vexillum.plugincore.util.JsonUtil.JSON_EXTENSION
 import com.vexillum.plugincore.util.JsonUtil.JSON_GLOB_MATCHER
 import java.io.File
@@ -53,7 +54,7 @@ class LanguageManager<T : Any> internal constructor(
         createDestinationFolder()
         useOriginPath { originPath ->
 
-            val destinationPath = dataFolder.toPath().resolve(destinationFolderPath)
+            val destinationPath = plugin.dataFolder.toPath().resolve(destinationFolderPath)
                 .also { require(it.isDirectory()) { "Destination folder must be a directory" } }
 
             val originLanguages = languagePaths(originPath)
@@ -83,7 +84,7 @@ class LanguageManager<T : Any> internal constructor(
     }
 
     private fun useOriginPath(block: (Path) -> Unit) {
-        val tempFile = File(dataFolder, "$destinationFolderPath${File.separator}$TEMP_PATH")
+        val tempFile = File(plugin.dataFolder, "$destinationFolderPath${File.separator}$TEMP_PATH")
         try {
             // Delete origin folder if exists and then create a fresh one
             tempFile.deleteRecursively()
@@ -101,9 +102,9 @@ class LanguageManager<T : Any> internal constructor(
     }
 
     private fun createDestinationFolder() {
-        val folderName = "$name${File.separator}$destinationFolderPath"
+        val folderName = "${plugin.name}${File.separator}$destinationFolderPath"
         try {
-            if (File(dataFolder, destinationFolderPath).mkdirs()) {
+            if (File(plugin.dataFolder, destinationFolderPath).mkdirs()) {
                 logManager.info("Created language folder in: $folderName")
             }
         } catch (e: Exception) {

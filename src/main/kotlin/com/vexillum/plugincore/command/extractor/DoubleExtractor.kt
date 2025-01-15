@@ -1,9 +1,10 @@
 package com.vexillum.plugincore.command.extractor
+import com.vexillum.plugincore.launcher.defaultCommandMessage
 import com.vexillum.plugincore.managers.language.LanguageAgent
 
 class DoubleExtractor<Sender : LanguageAgent>(
     override val descriptor: (LanguageAgent) -> String
-) : ArgumentExtractor<Sender, Double> {
+) : BaseArgumentExtractor<Sender, Double>() {
 
     override val extractor = { _: Sender, value: String ->
         value.toDouble()

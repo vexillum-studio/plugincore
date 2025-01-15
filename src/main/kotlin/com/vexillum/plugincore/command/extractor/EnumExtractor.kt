@@ -1,6 +1,7 @@
 package com.vexillum.plugincore.command.extractor
 
-import com.vexillum.plugincore.launcher.PluginCoreLauncher
+import com.vexillum.plugincore.command.suggestion.Suggestion
+import com.vexillum.plugincore.launcher.defaultCommandMessage
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import kotlin.reflect.KClass
 
@@ -8,7 +9,7 @@ open class EnumExtractor<Sender : LanguageAgent, T : Enum<T>>(
     enumClass: KClass<T>,
     override val descriptor: (LanguageAgent) -> String,
     private val ignoreCase: Boolean = true
-) : ArgumentExtractor<Sender, T> {
+) : BaseArgumentExtractor<Sender, T>() {
 
     private val values = enumClass.java.enumConstants
 
@@ -28,8 +29,9 @@ open class EnumExtractor<Sender : LanguageAgent, T : Enum<T>>(
             "value" to value,
             "possibleValues" to valuesFromName.keys.joinToString()
         )
-        PluginCoreLauncher.instance.resolve(sender, replacements) { command.parsing.enum }
+        sender.defaultCommandMessage(replacements) { command.parsing.enum }
     }
 
-    override fun autocomplete(sender: Sender, value: String) = valueNames
+    override fun autocomplete(sender: Sender, value: String) =
+        valueNames.map { Suggestion<Sender>(it) }
 }

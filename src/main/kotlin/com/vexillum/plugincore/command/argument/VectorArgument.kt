@@ -2,7 +2,7 @@ package com.vexillum.plugincore.command.argument
 
 import com.vexillum.plugincore.command.extractor.DoubleExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
-import com.vexillum.plugincore.launcher.PluginCoreLauncher
+import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import org.bukkit.util.Vector
 
@@ -30,7 +30,7 @@ open class VectorArgument<Sender : LanguageAgent>(
         companion object {
 
             fun of(agent: LanguageAgent) =
-                PluginCoreLauncher.instance.withAgent(agent) {
+                pluginCoreInstance.withAgent(agent) {
                     VectorDescriptor(
                         x = resolve { command.descriptor.x },
                         y = resolve { command.descriptor.y },

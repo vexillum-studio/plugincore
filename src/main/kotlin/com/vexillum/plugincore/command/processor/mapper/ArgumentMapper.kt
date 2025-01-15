@@ -3,7 +3,7 @@ package com.vexillum.plugincore.command.processor.mapper
 import com.vexillum.plugincore.command.ArgumentMapException
 import com.vexillum.plugincore.command.CommandException
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
-import com.vexillum.plugincore.launcher.PluginCoreLauncher
+import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
 import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import com.vexillum.plugincore.managers.language.Message
@@ -36,5 +36,5 @@ interface ArgumentMapper<Sender : LanguageAgent, BaseType : Any, Type : Any> : A
         replacements: Map<String, Any> = emptyMap(),
         block: PluginCoreLanguage.() -> Message
     ): String =
-        PluginCoreLauncher.instance.resolve(this, replacements, block)
+        pluginCoreInstance.resolve(this, replacements, block)
 }

@@ -9,45 +9,58 @@ import com.vexillum.plugincore.managers.log.LogManager
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.server.PluginEnableEvent
-import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
 
-interface PluginCore : Plugin, Listener {
+interface PluginCore {
+    val plugin: JavaPlugin
     val managerFactory: ManagerFactory
     val logManager: LogManager
     val commandManager: CommandManager
+
+    fun enable()
+
+    fun disable()
+
+    fun afterEnable()
 }
 
-abstract class PluginCoreBase : JavaPlugin(), PluginCore {
+abstract class PluginCoreBase : PluginCore, Listener {
+    override lateinit var plugin: JavaPlugin
+        internal set
+    final override val managerFactory: ManagerFactory by lazy {
+        ManagerFactory(this)
+    }
+    final override val logManager: LogManager by lazy {
+        managerFactory.newLogManager()
+    }
+    final override val commandManager: CommandManager by lazy {
+        managerFactory.commandManager()
+    }
+}
 
-    final override val managerFactory: ManagerFactory = ManagerFactory(this)
-    override val logManager: LogManager = managerFactory.newLogManager()
-    override val commandManager: CommandManager = managerFactory.commandManager()
+abstract class PluginCoreBoot(
+    val pluginCore: PluginCoreBase
+) : JavaPlugin() {
 
     final override fun onEnable() {
+        pluginCore.plugin = this
         this::class.loadResourceAsString(DEFAULT_BANNER_PATH)?.let {
             println(it)
         }
-        registerEvents(this)
-        managerFactory.start()
-        enable()
+        registerEvents(pluginCore)
+        pluginCore.managerFactory.start()
+        pluginCore.enable()
     }
 
     final override fun onDisable() {
-        disable()
-        managerFactory.stop()
+        pluginCore.disable()
+        pluginCore.managerFactory.stop()
     }
-
-    abstract fun enable()
-
-    abstract fun disable()
-
-    open fun afterEnable() {}
 
     @EventHandler
     fun on(event: PluginEnableEvent) {
         if (event.plugin === this) {
-            runOnNextTick(this::afterEnable)
+            runOnNextTick(pluginCore::afterEnable)
         }
     }
 

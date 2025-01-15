@@ -2,7 +2,9 @@ package com.vexillum.plugincore.managers.language
 
 import com.vexillum.plugincore.launcher.entities.PluginCorePlayer
 import com.vexillum.plugincore.managers.language.LocalLanguage.ENGLISH
+import com.vexillum.plugincore.managers.language.context.LanguageContext
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.OfflinePlayer
 import org.bukkit.Sound
 import org.bukkit.command.CommandSender
@@ -29,7 +31,6 @@ interface LanguageAgent : CommandSender, Conversable {
     fun <T : Any> commandException(
         languageContext: LanguageContext<T>,
         replacements: Map<String, Any> = emptyMap(),
-        sound: Sound? = null,
         block: T.() -> Message
     ): Nothing {
         languageContext.commandException(this, replacements, block)
@@ -37,6 +38,10 @@ interface LanguageAgent : CommandSender, Conversable {
 }
 
 private val consoleSender = Bukkit.getConsoleSender()
+
+object Console : LanguageAgent, ConsoleCommandSender by consoleSender {
+    override val activeLanguage: LocalLanguage = ENGLISH
+}
 
 object BukkitConsole : LanguageAgent, ConsoleCommandSender by consoleSender {
 
@@ -55,7 +60,7 @@ abstract class OfflinePluginPlayer private constructor(
 
     @Transient
     override val activeLanguage: LocalLanguage? =
-        PluginCorePlayer.of(uniqueId).language
+        PluginCorePlayer.of(uniqueId).persistedLanguage.let { LocalLanguage.ofCode(it) }
 
     override fun hashCode(): Int =
         uniqueId.hashCode()
@@ -66,15 +71,34 @@ abstract class OfflinePluginPlayer private constructor(
     }
 }
 
-open class PluginPlayer(
+abstract class PluginPlayer internal constructor(
     private val player: Player
 ) : LanguageAgent, Player by player {
 
     constructor(uuid: UUID) :
         this(Bukkit.getPlayer(uuid) ?: error("The player with uuid $uuid is offline"))
 
-    final override val activeLanguage: LocalLanguage? =
-        PluginCorePlayer.of(uniqueId).language ?: LocalLanguage.ofCode(player.locale)
+    final override val activeLanguage: LocalLanguage?
+        get() = LocalLanguage.ofCode(player.locale)
+
+    fun <T : Any> commandException(
+        languageContext: LanguageContext<T>,
+        replacements: Map<String, Any> = emptyMap(),
+        sound: Sound? = null,
+        block: T.() -> Message
+    ): Nothing {
+        sound?.let { playSound(sound) }
+        languageContext.commandException(this, replacements, block)
+    }
+
+    fun playSound(
+        sound: Sound,
+        location: Location = this.location,
+        pitch: Float = 1F,
+        volume: Float = 1F
+    ) {
+        playSound(location, sound, volume, pitch)
+    }
 
     override fun hashCode(): Int =
         uniqueId.hashCode()
@@ -84,3 +108,6 @@ open class PluginPlayer(
         return uniqueId == (other as PluginPlayer).uniqueId
     }
 }
+
+fun Player.pluginPlayer(): PluginPlayer =
+    PluginCorePlayer.of(uniqueId)

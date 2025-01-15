@@ -4,9 +4,11 @@ import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.command.CommandBuilder
 import com.vexillum.plugincore.command.CommandName
 import com.vexillum.plugincore.command.CommandWrapper
+import com.vexillum.plugincore.extensions.registerEvents
 import com.vexillum.plugincore.managers.language.BukkitConsole
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import com.vexillum.plugincore.managers.language.PluginPlayer
+import com.vexillum.plugincore.managers.language.pluginPlayer
 import com.vexillum.plugincore.util.fieldValue
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandMap
@@ -42,7 +44,7 @@ class CommandManager internal constructor(val pluginCore: PluginCore) {
     fun registerPlayerCommand(
         block: CommandBuilder<PluginPlayer>.() -> Unit
     ) {
-        registerCommand<Player, PluginPlayer>(block) { PluginPlayer(it) }
+        registerCommand<Player, PluginPlayer>(block) { it.pluginPlayer() }
     }
 
     fun <C : CommandSender, Sender : LanguageAgent> registerCommand(
@@ -51,6 +53,7 @@ class CommandManager internal constructor(val pluginCore: PluginCore) {
     ) {
         val command = CommandBuilder<Sender>(pluginCore).also(block).build()
         val wrapper = CommandWrapper(agentSupplier, command)
+        pluginCore.plugin.registerEvents(wrapper)
         with(wrapper) {
             unregisterCommand(name)
             commandMap.register(name, this)

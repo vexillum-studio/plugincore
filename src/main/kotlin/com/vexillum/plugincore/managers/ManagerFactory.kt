@@ -7,6 +7,7 @@ import com.vexillum.plugincore.managers.language.LanguageManager
 import com.vexillum.plugincore.managers.log.LogManager
 import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 class ManagerFactory(
     private val pluginCore: PluginCore
 ) {
@@ -23,7 +24,7 @@ class ManagerFactory(
     }
 
     internal fun stop() {
-        configManagers.values.forEach { it.saveConfig() }
+        configManagers.values.forEach { it.plugin.saveConfig() }
         commandManager.unregisterAll()
     }
 
@@ -32,7 +33,7 @@ class ManagerFactory(
 
     fun <T : Any> newConfigManager(
         configClass: KClass<T>,
-        name: String = pluginCore.name,
+        name: String = pluginCore.plugin.name,
         originPath: String = "",
         destinationPath: String = ""
     ) =
@@ -56,7 +57,6 @@ class ManagerFactory(
             destinationFolderPath = destinationFolderPath
         ).also { languageManagers[languageClass] = it }
 
-    @Suppress("UNCHECKED_CAST")
     fun <T : Any> config(configClass: KClass<T>): ConfigManager<T> =
         configManagers[configClass] as? ConfigManager<T>
             ?: error("No ConfigManager registered for $configClass")
@@ -64,7 +64,6 @@ class ManagerFactory(
     inline fun <reified T : Any> config() =
         config(T::class)
 
-    @Suppress("UNCHECKED_CAST")
     fun <T : Any> language(languageClass: KClass<T>): LanguageManager<T> =
         languageManagers[languageClass] as? LanguageManager<T> ?: error("No LanguageManager registered for $languageClass")
 
