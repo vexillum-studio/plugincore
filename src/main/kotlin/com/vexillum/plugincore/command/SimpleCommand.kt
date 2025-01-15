@@ -4,6 +4,7 @@ import com.vexillum.plugincore.command.session.CommandSession
 import com.vexillum.plugincore.command.suggestion.CommandSuggestion
 import com.vexillum.plugincore.command.suggestion.SubCommandSuggestion
 import com.vexillum.plugincore.command.suggestion.UsageSuggestion
+import com.vexillum.plugincore.extensions.takeWhen
 import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import com.vexillum.plugincore.util.sortByLevenshtein
@@ -25,19 +26,16 @@ internal class SimpleCommand<Sender : LanguageAgent>(
                 commandException { command.permissionMessage }
             }
         }
-        val args = session.currentArgs
+        val args = session.args
 
         var lastException: CommandException? = null
-
         // Check for subcommand matching
         args.firstOrNull()?.let { firstArg ->
-            val newArgs = args.copyOfRange(1, args.size)
-            session.currentArgs = newArgs
             subCommands.forEach { subCommand ->
                 if (subCommand.matches(firstArg)) {
                     try {
                         println("subcommand: " + subCommand.name)
-                        subCommand.execute(sender, session)
+                        subCommand.execute(sender, session.moveToNextArg())
                         return
                     } catch (e: CommandException) {
                         lastException = e
@@ -66,19 +64,17 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         }
 
     override fun autocomplete(sender: Sender, session: CommandSession): MutableList<String> {
-        val args = session.currentArgs
+        val args = session.args
         // Look for sub command tab complete
         if (args.isNotEmpty()) {
-            val newArgs = args.copyOfRange(1, args.size)
-            val newSession = session.copy(currentArgs = newArgs)
             for (subcommand in subCommands) {
                 if (subcommand.matches(args.first())) {
-                    return subcommand.autocomplete(sender, newSession)
+                    return subcommand.autocomplete(sender, session.moveToNextArg())
                 }
             }
         }
-        val lastArg = args.lastOrNull()
 
+        val lastArg = session.currentArg
         val autocompletes = mutableListOf<CommandSuggestion<Sender>>()
 
         autocompleteSubCommands(autocompletes)
@@ -103,8 +99,10 @@ internal class SimpleCommand<Sender : LanguageAgent>(
     private fun autocompleteSubCommands(
         autocompletes: MutableList<CommandSuggestion<Sender>>
     ) =
-        (subCommands.map { it.name } + subCommands.flatMap { it.aliases }).forEach { alias ->
-            autocompletes.add(SubCommandSuggestion(alias))
+        takeWhen(subCommands.isNotEmpty()) {
+            (subCommands.map { it.name } + subCommands.flatMap { it.aliases }).forEach { alias ->
+                autocompletes.add(SubCommandSuggestion(alias))
+            }
         }
 
     private fun autocompleteUsages(
@@ -112,13 +110,13 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         session: CommandSession,
         autocompletes: MutableList<CommandSuggestion<Sender>>
     ) {
-        val args = session.currentArgs
+        val args = session.args
         for (usage in usages) {
             val arguments = usage.arguments
             val totalSlots = arguments.sumOf { it.slots }
             // Skip usages that we can't complete anymore
             if (args.size > totalSlots) continue
-            val context = usage.validate(sender, session)
+            val context = usage.validate(sender, session.resetSession())
             if (!context.executedSuccessfully) continue
             val lastExtractor = context.lastExtractor ?: continue
             val currentArg = context.currentArg

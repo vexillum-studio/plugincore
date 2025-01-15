@@ -1,14 +1,15 @@
 package com.vexillum.plugincore.command
 
 import com.vexillum.plugincore.command.session.CommandSession
+import com.vexillum.plugincore.command.session.Session
 import com.vexillum.plugincore.extensions.tryCastOrNull
 import com.vexillum.plugincore.managers.language.LanguageAgent
+import java.util.concurrent.ConcurrentHashMap
+import java.util.regex.Pattern
 import org.bukkit.command.CommandSender
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
-import java.util.concurrent.ConcurrentHashMap
-import java.util.regex.Pattern
 import org.bukkit.command.Command as BukkitCommand
 
 internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
@@ -22,12 +23,14 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
 ),
     Listener {
 
-    private val sessions = ConcurrentHashMap<A, CommandSession>()
+    private val sessions = ConcurrentHashMap<A, Session>()
 
     private val pattern = Pattern.compile("^${command.startToken}(?<label>\\w+)\\s?(?<captured>.*)\$")
 
-    private fun session(agent: A) =
-        sessions.computeIfAbsent(agent) { CommandSession() }
+    private fun applyToSession(agent: A, block: Session.() -> Session): CommandSession =
+        sessions.compute(agent) { _, value ->
+            value?.block() ?: Session()
+        }!!
 
     @EventHandler
     fun onCommandPreprocess(event: PlayerCommandPreprocessEvent) {
@@ -42,15 +45,13 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
             sessions.remove(sender)
         }
         val captured = matcher.group("captured")
-        val session = session(sender)
-        session.capturedInput = captured
+        applyToSession(sender) { copy(capturedInput = captured) }
         event.isCancelled = true
     }
 
     override fun execute(sender: CommandSender, label: String, args: Array<String>): Boolean {
         val agent = agentFromSender(sender) ?: return false
-        val session = session(agent)
-        session.currentArgs = args
+        val session = applyToSession(agent) { copy(args = args) }
         try {
             command.execute(agent, session)
         } catch (e: CommandException) {
@@ -61,8 +62,7 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
 
     override fun tabComplete(sender: CommandSender, alias: String, args: Array<String>): MutableList<String> {
         val agent = agentFromSender(sender) ?: return mutableListOf()
-        val session = session(agent)
-        session.currentArgs = args
+        val session = applyToSession(agent) { copy(args = args) }
         return command.autocomplete(agent, session)
     }
 

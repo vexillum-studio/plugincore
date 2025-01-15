@@ -5,13 +5,10 @@ import com.vexillum.plugincore.command.extractor.ArgumentExtractor
 import com.vexillum.plugincore.command.session.CommandSession
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import java.util.LinkedList
-import java.util.regex.Pattern
 
-class ExecutionContext<Sender : LanguageAgent>(
-    private val session: CommandSession
-) {
-
-    private val argsIterator = session.currentArgs.copyOf().iterator()
+class ExecutionContext<Sender : LanguageAgent> internal constructor(
+    session: CommandSession
+) : CommandSession by session {
 
     private val arguments = LinkedList<Argument<Sender, *>>()
     private val extractors = LinkedList<ArgumentExtractor<Sender, *>>()
@@ -19,32 +16,14 @@ class ExecutionContext<Sender : LanguageAgent>(
     private var lastExceptionIndex: Int? = null
     private var lastException: Exception? = null
 
-    val currentArg
-        get() =
-            session.currentArgs.lastOrNull()
-
-    val validLastExecution: Boolean
-        get() =
-            lastExceptionIndex?.let { it > session.currentArgs.lastIndex } ?: true
+    val validLastExecution: Boolean get() =
+        lastExceptionIndex?.let { it > args.lastIndex } ?: true
 
     val executedSuccessfully: Boolean get() =
-        currentIndex >= session.currentArgs.lastIndex
+        currentIndex >= args.lastIndex
 
-    val lastExtractor: ArgumentExtractor<Sender, *>?
-        get() = extractors.getOrNull(session.currentArgs.lastIndex) ?: extractors.lastOrNull()
-
-    fun readToEnd() =
-        buildString {
-            val matcher = argumentsPattern.matcher(session.capturedInput)
-            var index = 0
-            while (matcher.find()) {
-                if (index > currentIndex) {
-                    append(matcher.group())
-                    nextArgument()
-                }
-                index++
-            }
-        }
+    val lastExtractor: ArgumentExtractor<Sender, *>? get() =
+        extractors.getOrNull(args.lastIndex) ?: extractors.lastOrNull()
 
     fun safeApply(
         block: ExecutionContext<Sender>.() -> Any
@@ -84,21 +63,14 @@ class ExecutionContext<Sender : LanguageAgent>(
         extractor: ArgumentExtractor<Sender, Type>
     ): Type =
         extractors.add(extractor).let {
-            extractor.extract(sender, nextArgument())
+            extractor.extract(sender, next())
         }
 
-    fun hasNextArgument(): Boolean =
-        argsIterator.hasNext()
-
-    private fun nextArgument(): String =
+    private fun next(): String =
         try {
             currentIndex++
-            argsIterator.next()
+            nextArgument()
         } catch (e: NoSuchElementException) {
             throw NoNextArgumentException()
         }
-
-    private companion object {
-        private val argumentsPattern = Pattern.compile("(\\s*\\S\\s*)")
-    }
 }

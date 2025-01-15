@@ -7,8 +7,8 @@ import com.vexillum.plugincore.managers.language.LocalLanguage
 import com.vexillum.plugincore.managers.language.LocalLanguage.ENGLISH
 import com.vexillum.plugincore.managers.language.Message
 import org.bukkit.plugin.java.JavaPlugin
-import org.mockito.Mockito.anyMap
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyMap
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 

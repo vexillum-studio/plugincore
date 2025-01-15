@@ -6,7 +6,7 @@ import com.vexillum.plugincore.managers.language.LanguageAgent
 typealias CommandName = String
 
 interface Command<Sender : LanguageAgent> {
-    val startToken: String
+    val startToken: String get() = SLASH
     val name: CommandName
     val aliases: Set<CommandName>
     val description: ((Sender) -> String)?

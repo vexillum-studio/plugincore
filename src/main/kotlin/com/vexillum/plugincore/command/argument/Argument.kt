@@ -239,6 +239,6 @@ abstract class PlainArgument<Sender : LanguageAgent, T1 : Any, Type : Any> :
     final override fun get(sender: Sender, context: ExecutionContext<Sender>): Type =
         transform(
             sender,
-            context.readToEnd()
+            context.capturedInput
         )
 }
