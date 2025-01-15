@@ -136,7 +136,7 @@ class SimpleCommandTests : TestServer() {
     @Suppress("LongMethod")
     fun `should get correct usage autocompletes`() {
         scenario1()
-/*
+
         // All usages must be suggested
         assertAutocomplete(
             arrayOf(""),
@@ -170,7 +170,7 @@ class SimpleCommandTests : TestServer() {
             arrayOf("nether"),
             listOf("world_the_nether")
         )
-        */
+        
         assertAutocomplete(
             arrayOf("world", "100"),
             listOf("<x>")
