@@ -1,6 +1,8 @@
 package com.vexillum.plugincore.managers.command
 
+import com.vexillum.plugincore.assertThrowsMessage
 import com.vexillum.plugincore.command.Command
+import com.vexillum.plugincore.command.CommandException
 import com.vexillum.plugincore.command.CommandUsage0
 import com.vexillum.plugincore.command.CommandUsage1
 import com.vexillum.plugincore.command.CommandUsage2
@@ -9,11 +11,16 @@ import com.vexillum.plugincore.command.argument.LocationArgument
 import com.vexillum.plugincore.command.argument.PlayerArgument
 import com.vexillum.plugincore.command.argument.RelativeLocationArgument
 import com.vexillum.plugincore.command.session.Session
-import com.vexillum.plugincore.managers.language.PluginPlayer
+import com.vexillum.plugincore.command.session.User
+import com.vexillum.plugincore.entities.PluginPlayer
+import com.vexillum.plugincore.managers.language.LanguageAgent
 import com.vexillum.plugincore.scenarios.TestServer
+import org.bukkit.Location
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 
 class SimpleCommandTests : TestServer() {
 
@@ -160,7 +167,7 @@ class SimpleCommandTests : TestServer() {
         // world x y z
         assertAutocomplete(
             arrayOf("w"),
-            listOf("world", "world_the_nether", "world_the_end")
+            listOf("world", "world_the_end", "world_the_nether")
         )
         assertAutocomplete(
             arrayOf("world"),
@@ -170,7 +177,7 @@ class SimpleCommandTests : TestServer() {
             arrayOf("nether"),
             listOf("world_the_nether")
         )
-        
+
         assertAutocomplete(
             arrayOf("world", "100"),
             listOf("<x>")
@@ -229,23 +236,90 @@ class SimpleCommandTests : TestServer() {
         )
     }
 
-    private fun session(
-        capturedInput: String = "",
-        args: Array<String>
-    ) =
-        Session(
-            capturedInput = capturedInput,
-            args = args
-        )
+    @Test
+    fun `the localLanguage property should be called just once for all the command process`() {
+        scenario1()
+        // A singe LanguageState is created at the start of the process
+        // all messages should resolve from there in the CommandSession without asking again for the player's language
+        execute(adminMock, "Admin", "TestPlayer")
+        verify(adminMock, times(1)).localLanguage
+    }
+
+    @Test
+    fun `should throw CommandException when the player doesnt have permission`() {
+        scenario1()
+        // playerMock doesn't have permission to execute this command
+        assertThrowsMessage<CommandException>("You don't have permission to execute that command") {
+            execute(playerMock, "100", "200", "300")
+        }
+    }
+
+    @Test
+    fun `should throw error on invalid usages`() {
+        scenario1()
+        assertThrowsMessage<CommandException>("'y-coordinate' can't be parsed as a double value") {
+            execute(adminMock, "100", "y-coordinate")
+        }
+        assertThrowsMessage<CommandException>("'z-coordinate' can't be parsed as a double value") {
+            execute(adminMock, "100", "200", "z-coordinate")
+        }
+        assertThrowsMessage<CommandException>("The world 'wor' was not found") {
+            execute(adminMock, "wor")
+        }
+        assertThrowsMessage<CommandException>("The world 'end' was not found") {
+            execute(adminMock, "end")
+        }
+        assertThrowsMessage<CommandException>("Player 'Adm' was not found") {
+            execute(adminMock, "Adm")
+        }
+        assertThrowsMessage<CommandException>("'#' can't be parsed as a double value") {
+            execute(adminMock, "world", "#")
+        }
+    }
+
+    @Test
+    fun `should execute command usages correctly`() {
+        scenario1()
+        execute(adminMock, "100", "200", "300")
+        verify(adminMock, times(1)).teleport(Location(worldMock, 100.0, 200.0, 300.0))
+        resetCalls()
+
+        execute(adminMock, "world_the_nether", "100", "200", "300")
+        verify(adminMock, times(1)).teleport(Location(netherMock, 100.0, 200.0, 300.0))
+        resetCalls()
+
+        execute(adminMock, "TestPlayer", "100", "200", "300")
+        verify(playerMock, times(1)).teleport(Location(worldMock, 100.0, 200.0, 300.0))
+        resetCalls()
+
+        execute(adminMock, "Admin", "TestPlayer")
+        verify(adminMock, times(1)).teleport(playerMock)
+    }
 
     private fun assertAutocomplete(
         args: Array<String>,
-        expected: List<String>
+        expected: List<String>,
+        sender: PluginPlayer = adminMock
     ) {
-        val session = session(
-            args.joinToString(" "),
-            args
-        )
-        assertThat(command.autocomplete(playerMock, session), `is`(expected.toMutableList()))
+        val session = session(sender, args)
+        assertThat(command.autocomplete(session), `is`(expected.toMutableList()))
     }
+
+    private fun execute(
+        sender: PluginPlayer,
+        vararg args: String
+    ) {
+        command.execute(session(sender, arrayOf(*args)))
+    }
+
+    private fun <Sender : LanguageAgent> session(
+        sender: Sender,
+        args: Array<String>,
+        capturedInput: String = args.joinToString(" ")
+    ) =
+        Session(
+            user = User(sender),
+            capturedInput = capturedInput,
+            args = args
+        )
 }

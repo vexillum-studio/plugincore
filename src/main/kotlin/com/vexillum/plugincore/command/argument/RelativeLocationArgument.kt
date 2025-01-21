@@ -3,12 +3,12 @@ package com.vexillum.plugincore.command.argument
 import com.vexillum.plugincore.command.argument.VectorArgument.VectorDescriptor
 import com.vexillum.plugincore.command.extractor.DoubleExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
-import com.vexillum.plugincore.managers.language.LanguageAgent
-import com.vexillum.plugincore.managers.language.PluginPlayer
+import com.vexillum.plugincore.command.session.CommandUser
+import com.vexillum.plugincore.entities.PluginPlayer
 import org.bukkit.Location
 
 open class RelativeLocationArgument<Sender : PluginPlayer>(
-    descriptor: (LanguageAgent) -> VectorDescriptor = { VectorDescriptor.of(it) },
+    descriptor: (CommandUser<*>) -> VectorDescriptor = { VectorDescriptor.of(it) },
     override val processor: ArgumentProcessor<Sender, Location, Location>? = null
 ) : Argument3<Sender, Double, Double, Double, Location>() {
 
@@ -18,7 +18,7 @@ open class RelativeLocationArgument<Sender : PluginPlayer>(
 
     override val extractor3 = DoubleExtractor<Sender> { descriptor(it).z }
 
-    override val merger = { sender: Sender, x: Double, y: Double, z: Double ->
-        Location(sender.world, x, y, z)
+    override val merger = { user: CommandUser<Sender>, x: Double, y: Double, z: Double ->
+        Location(user.agent.world, x, y, z)
     }
 }

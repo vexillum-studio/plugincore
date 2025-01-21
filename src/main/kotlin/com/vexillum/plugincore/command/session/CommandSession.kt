@@ -1,12 +1,15 @@
 package com.vexillum.plugincore.command.session
 
-interface CommandSession {
-    val original: CommandSession
+import com.vexillum.plugincore.command.ExecutionContext
+import com.vexillum.plugincore.managers.language.LanguageAgent
+
+interface CommandSession<Sender : LanguageAgent> : CommandUser<Sender> {
     val capturedInput: String
     val args: Array<String>
     val currentArg: String?
     fun hasNextArgument(): Boolean
     fun nextArgument(): String
-    fun moveToNextArg(): CommandSession
-    fun resetSession(): CommandSession
+    fun moveToNextArg(): CommandSession<Sender>
+    fun resetSession(): CommandSession<Sender>
+    fun executionContext(): ExecutionContext<Sender>
 }

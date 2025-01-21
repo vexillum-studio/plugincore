@@ -4,11 +4,11 @@ import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.command.CommandBuilder
 import com.vexillum.plugincore.command.CommandName
 import com.vexillum.plugincore.command.CommandWrapper
+import com.vexillum.plugincore.entities.BukkitConsole
+import com.vexillum.plugincore.entities.PluginPlayer
+import com.vexillum.plugincore.entities.pluginPlayer
 import com.vexillum.plugincore.extensions.registerEvents
-import com.vexillum.plugincore.managers.language.BukkitConsole
 import com.vexillum.plugincore.managers.language.LanguageAgent
-import com.vexillum.plugincore.managers.language.PluginPlayer
-import com.vexillum.plugincore.managers.language.pluginPlayer
 import com.vexillum.plugincore.util.fieldValue
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandMap

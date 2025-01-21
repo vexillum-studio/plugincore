@@ -4,12 +4,12 @@ import com.vexillum.plugincore.command.session.CommandSession
 import com.vexillum.plugincore.command.session.Session
 import com.vexillum.plugincore.extensions.tryCastOrNull
 import com.vexillum.plugincore.managers.language.LanguageAgent
-import java.util.concurrent.ConcurrentHashMap
-import java.util.regex.Pattern
 import org.bukkit.command.CommandSender
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
+import java.util.concurrent.ConcurrentHashMap
+import java.util.regex.Pattern
 import org.bukkit.command.Command as BukkitCommand
 
 internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
@@ -23,13 +23,13 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
 ),
     Listener {
 
-    private val sessions = ConcurrentHashMap<A, Session>()
+    private val sessions = ConcurrentHashMap<A, Session<A>>()
 
     private val pattern = Pattern.compile("^${command.startToken}(?<label>\\w+)\\s?(?<captured>.*)\$")
 
-    private fun applyToSession(agent: A, block: Session.() -> Session): CommandSession =
+    private fun applyToSession(agent: A, block: Session<A>.() -> Session<A>): CommandSession<A> =
         sessions.compute(agent) { _, value ->
-            value?.block() ?: Session()
+            value?.block() ?: Session(agent)
         }!!
 
     @EventHandler
@@ -53,7 +53,7 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
         val agent = agentFromSender(sender) ?: return false
         val session = applyToSession(agent) { copy(args = args) }
         try {
-            command.execute(agent, session)
+            command.execute(session)
         } catch (e: CommandException) {
             agent.sendMessage(e.message)
         }
@@ -63,7 +63,7 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
     override fun tabComplete(sender: CommandSender, alias: String, args: Array<String>): MutableList<String> {
         val agent = agentFromSender(sender) ?: return mutableListOf()
         val session = applyToSession(agent) { copy(args = args) }
-        return command.autocomplete(agent, session)
+        return command.autocomplete(session)
     }
 
     override fun getAliases(): MutableList<String> =

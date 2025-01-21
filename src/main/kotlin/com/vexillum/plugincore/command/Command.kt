@@ -14,8 +14,8 @@ interface Command<Sender : LanguageAgent> {
     val usages: List<CommandUsage<Sender>>
     val subCommands: Set<Command<Sender>>
     fun matches(label: String): Boolean
-    fun execute(sender: Sender, session: CommandSession)
-    fun autocomplete(sender: Sender, session: CommandSession): MutableList<String>
+    fun execute(session: CommandSession<Sender>)
+    fun autocomplete(session: CommandSession<Sender>): MutableList<String>
 
     fun commandException(message: String): Nothing =
         throw CommandException(message)

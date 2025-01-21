@@ -1,6 +1,6 @@
 package com.vexillum.plugincore.command.suggestion
 
-import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
+import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.managers.language.LanguageAgent
 
 class UsageSuggestion<Sender : LanguageAgent>(
@@ -11,8 +11,8 @@ class UsageSuggestion<Sender : LanguageAgent>(
 
     override val matchable = false
 
-    override fun describe(sender: Sender): String =
-        pluginCoreInstance.withAgent(sender) {
+    override fun describe(user: CommandUser<*>): String =
+        with(user) {
             val color = resolve { command.descriptor.color }
             val prefix = resolve { command.descriptor.prefix }
             val postfix = resolve { command.descriptor.postfix }

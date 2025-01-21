@@ -2,24 +2,21 @@ package com.vexillum.plugincore.command
 
 import com.vexillum.plugincore.command.argument.Argument
 import com.vexillum.plugincore.command.session.CommandSession
-import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
-import com.vexillum.plugincore.managers.language.Console
+import com.vexillum.plugincore.command.session.CommandUser
+import com.vexillum.plugincore.command.session.ConsoleUser
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import com.vexillum.plugincore.util.Constants.SPACE
-
-typealias ContextWrapper<Sender> =
-    ExecutionContext<Sender>.(ExecutionContext<Sender>.() -> Any) -> ExecutionContext<Sender>
 
 interface CommandUsage<Sender : LanguageAgent> {
 
     val arguments: List<Argument<Sender, *>>
 
-    fun validate(sender: Sender, session: CommandSession): ExecutionContext<Sender>
+    fun validate(session: CommandSession<Sender>): ExecutionContext<Sender>
 
-    fun execute(sender: Sender, session: CommandSession)
+    fun execute(session: CommandSession<Sender>): ExecutionContext<Sender>
 
-    fun describe(agent: LanguageAgent): String =
-        pluginCoreInstance.withAgent(agent) {
+    fun describe(user: CommandUser<*>): String =
+        with(user) {
             arguments
                 .asSequence()
                 .map { it.describe(this) }
@@ -32,7 +29,7 @@ interface CommandUsage<Sender : LanguageAgent> {
 internal abstract class BaseCommandUsage<Sender : LanguageAgent> : CommandUsage<Sender> {
 
     override fun toString() =
-        describe(Console)
+        describe(ConsoleUser)
 }
 
 internal class CommandUsage0<Sender : LanguageAgent>(
@@ -41,12 +38,13 @@ internal class CommandUsage0<Sender : LanguageAgent>(
 
     override val arguments = emptyList<Argument<Sender, *>>()
 
-    override fun validate(sender: Sender, session: CommandSession) =
-        ExecutionContext<Sender>(session)
+    override fun validate(session: CommandSession<Sender>) =
+        session.executionContext()
 
-    override fun execute(sender: Sender, session: CommandSession) {
-        block(sender)
-    }
+    override fun execute(session: CommandSession<Sender>) =
+        session.executionContext().safeApply {
+            block(session.agent)
+        }
 }
 
 internal class CommandUsage1<Sender : LanguageAgent, T1 : Any>(
@@ -56,24 +54,21 @@ internal class CommandUsage1<Sender : LanguageAgent, T1 : Any>(
 
     override val arguments = listOf(arg1)
 
-    override fun validate(sender: Sender, session: CommandSession) =
-        executeWithContext(sender, session, { safeApply(it) })
+    override fun validate(session: CommandSession<Sender>) =
+        executeWithContext(session)
 
-    override fun execute(sender: Sender, session: CommandSession) {
-        executeWithContext(sender, session) { a1 ->
-            block(sender, a1)
+    override fun execute(session: CommandSession<Sender>) =
+        executeWithContext(session) { a1 ->
+            block(agent, a1)
         }
-    }
 
     private fun executeWithContext(
-        sender: Sender,
-        session: CommandSession,
-        contextWrapper: ContextWrapper<Sender> = { apply { it() } },
+        session: CommandSession<Sender>,
         action: ExecutionContext<Sender>.(T1) -> Unit = { _ -> }
     ): ExecutionContext<Sender> =
-        ExecutionContext<Sender>(session).contextWrapper {
+        session.executionContext().safeApply {
             action(
-                getLast(sender, arg1)
+                getLast(arg1)
             )
         }
 }
@@ -86,25 +81,22 @@ internal class CommandUsage2<Sender : LanguageAgent, T1 : Any, T2 : Any>(
 
     override val arguments = listOf(arg1, arg2)
 
-    override fun validate(sender: Sender, session: CommandSession) =
-        executeWithContext(sender, session, { safeApply(it) })
+    override fun validate(session: CommandSession<Sender>) =
+        executeWithContext(session)
 
-    override fun execute(sender: Sender, session: CommandSession) {
-        executeWithContext(sender, session) { a1, a2 ->
-            block(sender, a1, a2)
+    override fun execute(session: CommandSession<Sender>) =
+        executeWithContext(session) { a1, a2 ->
+            block(agent, a1, a2)
         }
-    }
 
     private fun executeWithContext(
-        sender: Sender,
-        session: CommandSession,
-        contextWrapper: ContextWrapper<Sender> = { apply { it() } },
+        session: CommandSession<Sender>,
         action: ExecutionContext<Sender>.(T1, T2) -> Unit = { _, _ -> }
     ): ExecutionContext<Sender> =
-        ExecutionContext<Sender>(session).contextWrapper {
+        session.executionContext().safeApply {
             action(
-                get(sender, arg1),
-                getLast(sender, arg2)
+                get(arg1),
+                getLast(arg2)
             )
         }
 }
@@ -118,26 +110,23 @@ internal class CommandUsage3<Sender : LanguageAgent, T1 : Any, T2 : Any, T3 : An
 
     override val arguments = listOf(arg1, arg2, arg3)
 
-    override fun validate(sender: Sender, session: CommandSession) =
-        executeWithContext(sender, session, { safeApply(it) })
+    override fun validate(session: CommandSession<Sender>) =
+        executeWithContext(session)
 
-    override fun execute(sender: Sender, session: CommandSession) {
-        executeWithContext(sender, session) { a1, a2, a3 ->
-            block(sender, a1, a2, a3)
+    override fun execute(session: CommandSession<Sender>) =
+        executeWithContext(session) { a1, a2, a3 ->
+            block(agent, a1, a2, a3)
         }
-    }
 
     private fun executeWithContext(
-        sender: Sender,
-        session: CommandSession,
-        contextWrapper: ContextWrapper<Sender> = { apply { it() } },
+        session: CommandSession<Sender>,
         action: ExecutionContext<Sender>.(T1, T2, T3) -> Unit = { _, _, _ -> }
     ): ExecutionContext<Sender> =
-        ExecutionContext<Sender>(session).contextWrapper {
+        session.executionContext().safeApply {
             action(
-                get(sender, arg1),
-                get(sender, arg2),
-                getLast(sender, arg3)
+                get(arg1),
+                get(arg2),
+                getLast(arg3)
             )
         }
 }
@@ -152,27 +141,24 @@ internal class CommandUsage4<Sender : LanguageAgent, T1 : Any, T2 : Any, T3 : An
 
     override val arguments = listOf(arg1, arg2, arg3, arg4)
 
-    override fun validate(sender: Sender, session: CommandSession) =
-        executeWithContext(sender, session, { safeApply(it) })
+    override fun validate(session: CommandSession<Sender>) =
+        executeWithContext(session)
 
-    override fun execute(sender: Sender, session: CommandSession) {
-        executeWithContext(sender, session) { a1, a2, a3, a4 ->
-            block(sender, a1, a2, a3, a4)
+    override fun execute(session: CommandSession<Sender>) =
+        executeWithContext(session) { a1, a2, a3, a4 ->
+            block(agent, a1, a2, a3, a4)
         }
-    }
 
     private fun executeWithContext(
-        sender: Sender,
-        session: CommandSession,
-        contextWrapper: ContextWrapper<Sender> = { apply { it() } },
+        session: CommandSession<Sender>,
         action: ExecutionContext<Sender>.(T1, T2, T3, T4) -> Unit = { _, _, _, _ -> }
     ): ExecutionContext<Sender> =
-        ExecutionContext<Sender>(session).contextWrapper {
+        ExecutionContext(session).safeApply {
             action(
-                get(sender, arg1),
-                get(sender, arg2),
-                get(sender, arg3),
-                getLast(sender, arg4)
+                get(arg1),
+                get(arg2),
+                get(arg3),
+                getLast(arg4)
             )
         }
 }
@@ -188,28 +174,25 @@ internal class CommandUsage5<Sender : LanguageAgent, T1 : Any, T2 : Any, T3 : An
 
     override val arguments = listOf(arg1, arg2, arg3, arg4, arg5)
 
-    override fun validate(sender: Sender, session: CommandSession) =
-        executeWithContext(sender, session, { safeApply(it) })
+    override fun validate(session: CommandSession<Sender>) =
+        executeWithContext(session)
 
-    override fun execute(sender: Sender, session: CommandSession) {
-        executeWithContext(sender, session) { a1, a2, a3, a4, a5 ->
-            block(sender, a1, a2, a3, a4, a5)
+    override fun execute(session: CommandSession<Sender>) =
+        executeWithContext(session) { a1, a2, a3, a4, a5 ->
+            block(agent, a1, a2, a3, a4, a5)
         }
-    }
 
     private fun executeWithContext(
-        sender: Sender,
-        session: CommandSession,
-        contextWrapper: ContextWrapper<Sender> = { apply { it() } },
+        session: CommandSession<Sender>,
         action: ExecutionContext<Sender>.(T1, T2, T3, T4, T5) -> Unit = { _, _, _, _, _ -> }
     ): ExecutionContext<Sender> =
-        ExecutionContext<Sender>(session).contextWrapper {
+        session.executionContext().safeApply {
             action(
-                get(sender, arg1),
-                get(sender, arg2),
-                get(sender, arg3),
-                get(sender, arg4),
-                getLast(sender, arg5)
+                get(arg1),
+                get(arg2),
+                get(arg3),
+                get(arg4),
+                getLast(arg5)
             )
         }
 }
@@ -227,29 +210,26 @@ internal class CommandUsage6<Sender : LanguageAgent, T1 : Any, T2 : Any, T3 : An
 
     override val arguments = listOf(arg1, arg2, arg3, arg4, arg5, arg6)
 
-    override fun validate(sender: Sender, session: CommandSession) =
-        executeWithContext(sender, session, { safeApply(it) })
+    override fun validate(session: CommandSession<Sender>) =
+        executeWithContext(session)
 
-    override fun execute(sender: Sender, session: CommandSession) {
-        executeWithContext(sender, session) { a1, a2, a3, a4, a5, a6 ->
-            block(sender, a1, a2, a3, a4, a5, a6)
+    override fun execute(session: CommandSession<Sender>) =
+        executeWithContext(session) { a1, a2, a3, a4, a5, a6 ->
+            block(agent, a1, a2, a3, a4, a5, a6)
         }
-    }
 
     private fun executeWithContext(
-        sender: Sender,
-        session: CommandSession,
-        contextWrapper: ContextWrapper<Sender> = { apply { it() } },
+        session: CommandSession<Sender>,
         action: ExecutionContext<Sender>.(T1, T2, T3, T4, T5, T6) -> Unit = { _, _, _, _, _, _ -> }
     ): ExecutionContext<Sender> =
-        ExecutionContext<Sender>(session).contextWrapper {
+        session.executionContext().safeApply {
             action(
-                get(sender, arg1),
-                get(sender, arg2),
-                get(sender, arg3),
-                get(sender, arg4),
-                get(sender, arg5),
-                getLast(sender, arg6)
+                get(arg1),
+                get(arg2),
+                get(arg3),
+                get(arg4),
+                get(arg5),
+                getLast(arg6)
             )
         }
 }

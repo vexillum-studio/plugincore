@@ -5,7 +5,6 @@ import com.vexillum.plugincore.command.suggestion.CommandSuggestion
 import com.vexillum.plugincore.command.suggestion.SubCommandSuggestion
 import com.vexillum.plugincore.command.suggestion.UsageSuggestion
 import com.vexillum.plugincore.extensions.takeWhen
-import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import com.vexillum.plugincore.util.sortByLevenshtein
 
@@ -20,22 +19,17 @@ internal class SimpleCommand<Sender : LanguageAgent>(
     override val subCommands: Set<Command<Sender>>
 ) : Command<Sender> {
 
-    override fun execute(sender: Sender, session: CommandSession) {
-        if (permission?.let { sender.hasPermission(it) } == false) {
-            pluginCoreInstance.withAgent(sender) {
-                commandException { command.permissionMessage }
-            }
-        }
+    override fun execute(session: CommandSession<Sender>) {
+        // Check for permission
+        checkPermission(session)
         val args = session.args
-
-        var lastException: CommandException? = null
+        var lastException: Exception? = null
         // Check for subcommand matching
         args.firstOrNull()?.let { firstArg ->
             subCommands.forEach { subCommand ->
                 if (subCommand.matches(firstArg)) {
                     try {
-                        println("subcommand: " + subCommand.name)
-                        subCommand.execute(sender, session.moveToNextArg())
+                        subCommand.execute(session.moveToNextArg())
                         return
                     } catch (e: CommandException) {
                         lastException = e
@@ -43,18 +37,20 @@ internal class SimpleCommand<Sender : LanguageAgent>(
                 }
             }
         }
-
+        var maxMatchingScore = -1.0
         usages.forEach { usage ->
-            try {
-                println("usage: " + usage.describe(sender))
-                usage.execute(sender, session)
+            val context = usage.execute(session.resetSession())
+            if (context.completed) {
                 return
-            } catch (e: CommandException) {
-                lastException = e
+            }
+            val executionException = context.exception
+            if (executionException != null && context.matchingScore > maxMatchingScore) {
+                lastException = executionException
+                maxMatchingScore = context.matchingScore
             }
         }
-        if (lastException != null) {
-            println("threw: " + lastException!!::class.simpleName)
+        lastException?.let {
+            throw it
         }
     }
 
@@ -63,13 +59,14 @@ internal class SimpleCommand<Sender : LanguageAgent>(
             it.equals(label, ignoreCase = true)
         }
 
-    override fun autocomplete(sender: Sender, session: CommandSession): MutableList<String> {
+    override fun autocomplete(session: CommandSession<Sender>): MutableList<String> {
+        checkPermission(session)
         val args = session.args
         // Look for sub command tab complete
         if (args.isNotEmpty()) {
             for (subcommand in subCommands) {
                 if (subcommand.matches(args.first())) {
-                    return subcommand.autocomplete(sender, session.moveToNextArg())
+                    return subcommand.autocomplete(session.moveToNextArg())
                 }
             }
         }
@@ -78,7 +75,7 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         val autocompletes = mutableListOf<CommandSuggestion<Sender>>()
 
         autocompleteSubCommands(autocompletes)
-        autocompleteUsages(sender, session, autocompletes)
+        autocompleteUsages(session, autocompletes)
 
         return autocompletes
             .asSequence()
@@ -92,8 +89,14 @@ internal class SimpleCommand<Sender : LanguageAgent>(
                     it
                 }
             }
-            .map { it.describe(sender) }
+            .map { it.describe(session) }
             .toMutableList()
+    }
+
+    private fun checkPermission(session: CommandSession<*>) {
+        if (permission?.let { session.agent.hasPermission(it) } == false) {
+            session.languageException { command.permissionMessage }
+        }
     }
 
     private fun autocompleteSubCommands(
@@ -106,8 +109,7 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         }
 
     private fun autocompleteUsages(
-        sender: Sender,
-        session: CommandSession,
+        session: CommandSession<Sender>,
         autocompletes: MutableList<CommandSuggestion<Sender>>
     ) {
         val args = session.args
@@ -116,13 +118,13 @@ internal class SimpleCommand<Sender : LanguageAgent>(
             val totalSlots = arguments.sumOf { it.slots }
             // Skip usages that we can't complete anymore
             if (args.size > totalSlots) continue
-            val context = usage.validate(sender, session.resetSession())
+            val context = usage.validate(session.resetSession())
             if (!context.executedSuccessfully) continue
             val lastExtractor = context.lastExtractor ?: continue
             val currentArg = context.currentArg
             val extractorAutocompletes = mutableListOf<CommandSuggestion<Sender>>()
             if (!currentArg.isNullOrEmpty()) {
-                lastExtractor.autocomplete(sender, currentArg)
+                lastExtractor.autocomplete(session.agent, currentArg)
                     // Filter out autocompletes that match the current value
                     .filter { autocomplete ->
                         !autocomplete.value.equals(currentArg, ignoreCase = true)
@@ -133,7 +135,7 @@ internal class SimpleCommand<Sender : LanguageAgent>(
             }
             if (extractorAutocompletes.isEmpty()) {
                 if (currentArg.isNullOrEmpty() || context.validLastExecution) {
-                    autocompletes.add(UsageSuggestion(lastExtractor.descriptor(sender)))
+                    autocompletes.add(UsageSuggestion(lastExtractor.descriptor(session)))
                 }
             }
             autocompletes.addAll(extractorAutocompletes)

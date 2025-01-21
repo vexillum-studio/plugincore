@@ -1,10 +1,11 @@
 package com.vexillum.plugincore.command.processor
 
+import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.managers.language.LanguageAgent
 
 interface ArgumentProcessor<Sender : LanguageAgent, BaseType : Any, Type : Any> {
 
-    fun process(sender: Sender, value: BaseType): Type
+    fun process(user: CommandUser<Sender>, value: BaseType): Type
 
     operator fun <FinalType : Any> plus(
         processor: ArgumentProcessor<Sender, Type, FinalType>

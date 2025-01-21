@@ -4,8 +4,6 @@ open class CommandException(message: String? = null) : Exception(message)
 
 open class LanguageException(message: String) : CommandException(message)
 
-internal class ArgumentExtractException(override val cause: Exception) : CommandException()
-
 internal class ArgumentMapException(override val cause: Exception) : CommandException()
 
 internal class NoNextArgumentException : CommandException()

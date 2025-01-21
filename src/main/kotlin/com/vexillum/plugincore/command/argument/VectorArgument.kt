@@ -2,12 +2,12 @@ package com.vexillum.plugincore.command.argument
 
 import com.vexillum.plugincore.command.extractor.DoubleExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
-import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
+import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import org.bukkit.util.Vector
 
 open class VectorArgument<Sender : LanguageAgent>(
-    descriptor: (LanguageAgent) -> VectorDescriptor = { VectorDescriptor.of(it) },
+    descriptor: (CommandUser<*>) -> VectorDescriptor = { VectorDescriptor.of(it) },
     override val processor: ArgumentProcessor<Sender, Vector, Vector>? = null
 ) : Argument3<Sender, Double, Double, Double, Vector>() {
 
@@ -17,7 +17,7 @@ open class VectorArgument<Sender : LanguageAgent>(
 
     override val extractor3 = DoubleExtractor<Sender> { descriptor(it).z }
 
-    override val merger = { _: Sender, x: Double, y: Double, z: Double ->
+    override val merger = { _: CommandUser<Sender>, x: Double, y: Double, z: Double ->
         Vector(x, y, z)
     }
 
@@ -29,8 +29,8 @@ open class VectorArgument<Sender : LanguageAgent>(
 
         companion object {
 
-            fun of(agent: LanguageAgent) =
-                pluginCoreInstance.withAgent(agent) {
+            fun <Sender : LanguageAgent> of(user: CommandUser<Sender>) =
+                with(user) {
                     VectorDescriptor(
                         x = resolve { command.descriptor.x },
                         y = resolve { command.descriptor.y },

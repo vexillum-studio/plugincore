@@ -6,7 +6,7 @@ import org.bukkit.entity.Player
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
-internal object PluginCorePlayerManager {
+internal class PluginCorePlayerManager {
 
     private val players = ConcurrentHashMap<UUID, PluginCorePlayer>()
 

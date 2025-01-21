@@ -7,14 +7,15 @@ import com.vexillum.plugincore.managers.language.LanguageAgent
 import java.util.LinkedList
 
 class ExecutionContext<Sender : LanguageAgent> internal constructor(
-    session: CommandSession
-) : CommandSession by session {
+    session: CommandSession<Sender>
+) : CommandSession<Sender> by session {
 
     private val arguments = LinkedList<Argument<Sender, *>>()
     private val extractors = LinkedList<ArgumentExtractor<Sender, *>>()
     private var currentIndex: Int = -1
     private var lastExceptionIndex: Int? = null
     private var lastException: Exception? = null
+    private var currentMatchingScore: Double = 0.0
 
     val validLastExecution: Boolean get() =
         lastExceptionIndex?.let { it > args.lastIndex } ?: true
@@ -24,6 +25,15 @@ class ExecutionContext<Sender : LanguageAgent> internal constructor(
 
     val lastExtractor: ArgumentExtractor<Sender, *>? get() =
         extractors.getOrNull(args.lastIndex) ?: extractors.lastOrNull()
+
+    val completed: Boolean get() =
+        currentIndex == args.lastIndex && lastException == null
+
+    val exception: Exception? get() =
+        lastException
+
+    val matchingScore: Double get() =
+        currentMatchingScore
 
     fun safeApply(
         block: ExecutionContext<Sender>.() -> Any
@@ -38,20 +48,18 @@ class ExecutionContext<Sender : LanguageAgent> internal constructor(
         }
 
     fun <Type : Any> get(
-        sender: Sender,
         argument: Argument<Sender, Type>
     ): Type =
         arguments.add(argument).let {
-            argument.get(sender, this).let { value ->
-                argument.processor?.process(sender, value) ?: value
+            argument.get(this).let { value ->
+                argument.processor?.process(this, value) ?: value
             }
         }
 
     fun <Type : Any> getLast(
-        sender: Sender,
         argument: Argument<Sender, Type>
     ): Type =
-        get(sender, argument)
+        get(argument)
             .also {
                 if (hasNextArgument()) {
                     throw ArgumentsNotDepletedException()
@@ -59,11 +67,12 @@ class ExecutionContext<Sender : LanguageAgent> internal constructor(
             }
 
     fun <Type : Any> extract(
-        sender: Sender,
         extractor: ArgumentExtractor<Sender, Type>
     ): Type =
         extractors.add(extractor).let {
-            extractor.extract(sender, next())
+            val nextArg = next()
+            currentMatchingScore += extractor.matchingScore(agent, nextArg)
+            extractor.extract(this, nextArg)
         }
 
     private fun next(): String =

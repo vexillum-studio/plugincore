@@ -1,5 +1,7 @@
 package com.vexillum.plugincore.command.suggestion
 
+import com.vexillum.plugincore.command.session.CommandUser
+import com.vexillum.plugincore.command.session.ConsoleUser
 import com.vexillum.plugincore.managers.language.LanguageAgent
 
 abstract class BaseCommandSuggestion<Sender : LanguageAgent>(
@@ -16,10 +18,10 @@ abstract class BaseCommandSuggestion<Sender : LanguageAgent>(
         return priorityComparison
     }
 
-    override fun describe(sender: Sender): String =
+    override fun describe(user: CommandUser<*>): String =
         value
 
-    override fun toString() = value
+    override fun toString() = describe(ConsoleUser)
 
     override fun equals(other: Any?) =
         (other as? CommandSuggestion<*>)?.value == value

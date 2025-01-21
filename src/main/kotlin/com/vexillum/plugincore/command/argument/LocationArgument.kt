@@ -4,13 +4,13 @@ import com.vexillum.plugincore.command.argument.VectorArgument.VectorDescriptor
 import com.vexillum.plugincore.command.extractor.DoubleExtractor
 import com.vexillum.plugincore.command.extractor.WorldExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
-import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
+import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.managers.language.LanguageAgent
 import org.bukkit.Location
 import org.bukkit.World
 
 open class LocationArgument<Sender : LanguageAgent>(
-    descriptor: (LanguageAgent) -> LocationDescriptor = { LocationDescriptor.of(it) },
+    descriptor: (CommandUser<*>) -> LocationDescriptor = { LocationDescriptor.of(it) },
     override val processor: ArgumentProcessor<Sender, Location, Location>? = null
 ) : Argument4<Sender, World, Double, Double, Double, Location>() {
 
@@ -22,7 +22,7 @@ open class LocationArgument<Sender : LanguageAgent>(
 
     override val extractor4 = DoubleExtractor<Sender> { descriptor(it).vector.z }
 
-    override val merger = { _: Sender, world: World, x: Double, y: Double, z: Double ->
+    override val merger = { _: CommandUser<Sender>, world: World, x: Double, y: Double, z: Double ->
         Location(world, x, y, z)
     }
 
@@ -33,11 +33,11 @@ open class LocationArgument<Sender : LanguageAgent>(
 
         companion object {
 
-            fun of(agent: LanguageAgent) =
-                pluginCoreInstance.withAgent(agent) {
+            fun <Sender : LanguageAgent> of(user: CommandUser<Sender>) =
+                with(user) {
                     LocationDescriptor(
                         world = resolve { command.descriptor.world },
-                        vector = VectorDescriptor.of(agent)
+                        vector = VectorDescriptor.of(user)
                     )
                 }
         }

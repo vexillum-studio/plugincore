@@ -5,14 +5,13 @@ import com.vexillum.plugincore.PluginCoreBoot
 import com.vexillum.plugincore.command.argument.LocationArgument
 import com.vexillum.plugincore.command.argument.PlayerArgument
 import com.vexillum.plugincore.command.argument.RelativeLocationArgument
+import com.vexillum.plugincore.entities.Console.languageState
 import com.vexillum.plugincore.extensions.disablePlugin
-import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
 import com.vexillum.plugincore.launcher.managers.config.PluginCoreConfig
 import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
+import com.vexillum.plugincore.launcher.player.PluginCorePlayerManager
 import com.vexillum.plugincore.managers.language.Language
-import com.vexillum.plugincore.managers.language.LanguageAgent
 import com.vexillum.plugincore.managers.language.LocalLanguage
-import com.vexillum.plugincore.managers.language.Message
 import com.vexillum.plugincore.managers.language.context.LanguageContext
 
 fun main(args: Array<String>) {
@@ -21,17 +20,19 @@ fun main(args: Array<String>) {
 
 class PluginCoreLauncher : PluginCoreBase(), LanguageContext<PluginCoreLanguage> {
 
+    private val languageManager = managerFactory.newLanguageManager(
+        PluginCoreLanguage::class,
+        "language",
+        "language"
+    )
+
     val configManager = managerFactory.newConfigManager(
         PluginCoreConfig::class,
         "plugincore",
         "config"
     )
 
-    private val languageManager = managerFactory.newLanguageManager(
-        PluginCoreLanguage::class,
-        "language",
-        "language"
-    )
+    internal val playerManager: PluginCorePlayerManager = PluginCorePlayerManager()
 
     override fun enable() {
 
@@ -77,10 +78,9 @@ class PluginCoreLauncher : PluginCoreBase(), LanguageContext<PluginCoreLanguage>
             addSubCommand {
                 name = "test"
                 addUsage {
-                    it.sendMessage(
-                        pluginCoreInstance,
-                        mapOf("value" to "peras", "type" to "manzanas")
-                    ) { command.transformMessage }
+                    it.languageState(pluginCoreInstance).sendMessage(mapOf("value" to "peras", "type" to "manzanas")) {
+                        command.transformMessage
+                    }
                 }
             }
         }
@@ -103,13 +103,5 @@ class PluginCoreLauncher : PluginCoreBase(), LanguageContext<PluginCoreLanguage>
         internal lateinit var pluginCoreInstance: PluginCoreLauncher
     }
 }
-
-internal fun LanguageAgent.defaultCommandMessage(
-    replacements: Map<String, Any> = emptyMap(),
-    block: PluginCoreLanguage.() -> Message
-): String =
-    pluginCoreInstance.withAgent(this) {
-        resolve(replacements, block)
-    }
 
 class Launcher : PluginCoreBoot(PluginCoreLauncher())

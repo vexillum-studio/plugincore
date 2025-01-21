@@ -1,21 +1,26 @@
 package com.vexillum.plugincore.util
 
 fun levenshteinDistance(s1: String, s2: String): Int {
-    val dp = Array(s1.length + 1) { IntArray(s2.length + 1) }
-    for (i in s1.indices) dp[i][0] = i
-    for (j in s2.indices) dp[0][j] = j
-
-    for (i in 1..s1.length) {
-        for (j in 1..s2.length) {
-            dp[i][j] = if (s1[i - 1] == s2[j - 1]) {
-                dp[i - 1][j - 1]
-            } else {
-                minOf(dp[i - 1][j - 1], dp[i][j - 1], dp[i - 1][j]) + 1
-            }
+    val m = s1.length
+    val n = s2.length
+    val dp = Array(m + 1) { IntArray(n + 1) }
+    for (i in 0..m) {
+        dp[i][0] = i
+    }
+    for (j in 0..n) {
+        dp[0][j] = j
+    }
+    for (i in 1..m) {
+        for (j in 1..n) {
+            val cost = if (s1[i - 1] == s2[j - 1]) 0 else 1
+            dp[i][j] = minOf(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost)
         }
     }
-    return dp[s1.length][s2.length]
+    return dp[m][n]
 }
+
+fun Collection<String>.bestLevenshtein(input: String): Pair<Int, String>? =
+    map { levenshteinDistance(input, it) to it }.minByOrNull { it.first }
 
 fun Collection<String>.sortByLevenshtein(input: String): List<String> =
     sortedBy { levenshteinDistance(input, it) }

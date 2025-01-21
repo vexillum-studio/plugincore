@@ -7,6 +7,8 @@ import com.vexillum.plugincore.managers.language.LocalLanguage
 import com.vexillum.plugincore.managers.language.LocalLanguage.ENGLISH
 import com.vexillum.plugincore.managers.language.Message
 import org.bukkit.plugin.java.JavaPlugin
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyMap
 import org.mockito.kotlin.doReturn
@@ -49,3 +51,8 @@ inline fun <reified T : Any> languageFromJson(
         languageJson.byteInputStream(),
         T::class
     )
+
+inline fun <reified E : Throwable> assertThrowsMessage(expectedMessage: String, noinline block: () -> Unit) {
+    val throwable = assertThrows(E::class.java, block)
+    assertEquals(expectedMessage, throwable.message)
+}

@@ -1,27 +1,38 @@
 package com.vexillum.plugincore.command.extractor
 
+import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.command.suggestion.Suggestion
-import com.vexillum.plugincore.launcher.defaultCommandMessage
+import com.vexillum.plugincore.entities.PluginPlayer
 import com.vexillum.plugincore.managers.language.LanguageAgent
-import com.vexillum.plugincore.managers.language.PluginPlayer
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 
 open class PluginPlayerExtractor<Sender : LanguageAgent, P : PluginPlayer>(
-    override val descriptor: (LanguageAgent) -> String,
+    override val descriptor: (CommandUser<*>) -> String,
     val block: (Player) -> P?
 ) : BaseArgumentExtractor<Sender, P>() {
 
-    override val extractor = { _: Sender, name: String ->
+    override val extractor = { _: CommandUser<Sender>, name: String ->
         block(Bukkit.getPlayer(name)!!)!!
     }
 
-    override val errorMessage = { sender: Sender, name: String ->
-        sender.defaultCommandMessage(mapOf("name" to name)) { command.parsing.player }
-    }
+    override fun defaultDescriptor(user: CommandUser<*>): String =
+        descriptor(user)
+
+    override fun defaultErrorMessage(user: CommandUser<*>, value: String): String =
+        user.resolve(mapOf("name" to value)) { command.parsing.player }
 
     override fun autocomplete(sender: Sender, value: String) =
         Bukkit
             .getOnlinePlayers()
             .map { Suggestion<Sender>(it.name) }
+
+    override fun matchingScore(sender: Sender, value: String): Double =
+        if (usernameRegex.matches(value)) {
+            super.matchingScore(sender, value)
+        } else 0.0
+
+    companion object {
+        private val usernameRegex = Regex("^[a-zA-Z._][a-zA-Z0-9_]{2,20}$")
+    }
 }
