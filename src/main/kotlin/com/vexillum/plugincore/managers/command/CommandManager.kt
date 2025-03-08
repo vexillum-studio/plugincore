@@ -8,13 +8,15 @@ import com.vexillum.plugincore.entities.BukkitConsole
 import com.vexillum.plugincore.entities.PluginPlayer
 import com.vexillum.plugincore.entities.pluginPlayer
 import com.vexillum.plugincore.extensions.registerEvents
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.extensions.unregisterEvents
+import com.vexillum.plugincore.language.LanguageAgent
 import com.vexillum.plugincore.util.fieldValue
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandMap
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
+import org.bukkit.event.Listener
 
 class CommandManager internal constructor(val pluginCore: PluginCore) {
 
@@ -32,6 +34,9 @@ class CommandManager internal constructor(val pluginCore: PluginCore) {
     fun unregisterCommand(name: CommandName) {
         val command = commandMap.getCommand(name)
         command?.unregister(commandMap)
+        if (command is Listener) {
+            pluginCore.plugin.unregisterEvents(command)
+        }
         registeredCommands.remove(name)
     }
 
@@ -52,7 +57,7 @@ class CommandManager internal constructor(val pluginCore: PluginCore) {
         agentSupplier: (C) -> Sender?
     ) {
         val command = CommandBuilder<Sender>(pluginCore).also(block).build()
-        val wrapper = CommandWrapper(agentSupplier, command)
+        val wrapper = CommandWrapper(pluginCore, agentSupplier, command)
         pluginCore.plugin.registerEvents(wrapper)
         with(wrapper) {
             unregisterCommand(name)

@@ -1,4 +1,5 @@
 {
+  "monospacedFont": false,
   "logs": {
     "folder": "logs",
     "prefixFormat": "[hh:mm:ss.SSS]",

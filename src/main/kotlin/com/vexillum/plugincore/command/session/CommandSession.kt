@@ -1,7 +1,7 @@
 package com.vexillum.plugincore.command.session
 
 import com.vexillum.plugincore.command.ExecutionContext
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
 
 interface CommandSession<Sender : LanguageAgent> : CommandUser<Sender> {
     val capturedInput: String

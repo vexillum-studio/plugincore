@@ -7,7 +7,7 @@ import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.entities.PluginPlayer
 import org.bukkit.Location
 
-open class RelativeLocationArgument<Sender : PluginPlayer>(
+open class SenderLocationArgument<Sender : PluginPlayer>(
     descriptor: (CommandUser<*>) -> VectorDescriptor = { VectorDescriptor.of(it) },
     override val processor: ArgumentProcessor<Sender, Location, Location>? = null
 ) : Argument3<Sender, Double, Double, Double, Location>() {

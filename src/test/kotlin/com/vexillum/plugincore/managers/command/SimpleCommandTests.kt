@@ -1,7 +1,6 @@
 package com.vexillum.plugincore.managers.command
 
 import com.vexillum.plugincore.assertThrowsMessage
-import com.vexillum.plugincore.command.Command
 import com.vexillum.plugincore.command.CommandException
 import com.vexillum.plugincore.command.CommandUsage0
 import com.vexillum.plugincore.command.CommandUsage1
@@ -9,11 +8,12 @@ import com.vexillum.plugincore.command.CommandUsage2
 import com.vexillum.plugincore.command.SimpleCommand
 import com.vexillum.plugincore.command.argument.LocationArgument
 import com.vexillum.plugincore.command.argument.PlayerArgument
-import com.vexillum.plugincore.command.argument.RelativeLocationArgument
+import com.vexillum.plugincore.command.argument.SenderLocationArgument
 import com.vexillum.plugincore.command.session.Session
 import com.vexillum.plugincore.command.session.User
+import com.vexillum.plugincore.commandOf
 import com.vexillum.plugincore.entities.PluginPlayer
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
 import com.vexillum.plugincore.scenarios.TestServer
 import org.bukkit.Location
 import org.hamcrest.MatcherAssert.assertThat
@@ -22,20 +22,21 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 
+@Suppress("LongMethod")
 class SimpleCommandTests : TestServer() {
 
     private lateinit var command: SimpleCommand<PluginPlayer>
 
     private fun scenario1() {
-        command = SimpleCommand(
-            startToken = Command.SLASH,
+        command = commandOf(
+            pluginCore = pluginCoreLauncher,
             name = "teleport",
             aliases = setOf("tp"),
             description = { "This is a test command" },
             permission = "player.teleport",
             usages = listOf(
                 // x y z
-                CommandUsage1(RelativeLocationArgument()) { sender, location ->
+                CommandUsage1(SenderLocationArgument()) { sender, location ->
                     sender.teleport(location)
                 },
                 // world x y z
@@ -43,48 +44,41 @@ class SimpleCommandTests : TestServer() {
                     sender.teleport(location)
                 },
                 // player x y z
-                CommandUsage2(PlayerArgument({ "player" }), RelativeLocationArgument()) { _, player, location ->
+                CommandUsage2(PlayerArgument("player"), SenderLocationArgument()) { _, player, location ->
                     player.teleport(location)
                 },
                 // from to
-                CommandUsage2(PlayerArgument({ "from" }), PlayerArgument({ "to" })) { _, from, to ->
+                CommandUsage2(PlayerArgument("from"), PlayerArgument("to")) { _, from, to ->
                     from.teleport(to)
                 }
-            ),
-            subCommands = emptySet()
+            )
         )
     }
 
     private fun scenario2() {
-        command = SimpleCommand(
-            startToken = Command.SLASH,
+        command = commandOf(
+            pluginCoreLauncher,
             name = "test",
             aliases = setOf("t"),
             description = { "This is a test command" },
             permission = "player.teleport",
             usages = emptyList(),
             subCommands = setOf(
-                SimpleCommand(
-                    startToken = Command.SLASH,
+                commandOf(
+                    pluginCoreLauncher,
                     name = "sub-test",
-                    aliases = emptySet(),
                     description = { "This is a test command" },
-                    permission = null,
                     usages = listOf(
-                        CommandUsage0({})
-                    ),
-                    subCommands = emptySet()
+                        CommandUsage0 {}
+                    )
                 ),
-                SimpleCommand(
-                    startToken = Command.SLASH,
+                commandOf(
+                    pluginCoreLauncher,
                     name = "other-test",
-                    aliases = emptySet(),
                     description = { "This is a test command" },
-                    permission = null,
                     usages = listOf(
-                        CommandUsage0({})
-                    ),
-                    subCommands = emptySet()
+                        CommandUsage0 {}
+                    )
                 )
             )
         )
@@ -97,6 +91,7 @@ class SimpleCommandTests : TestServer() {
     }
 
     @Test
+    @Suppress("SpellCheckingInspection")
     fun `should not match by name`() {
         scenario1()
         assertThat(command.matches("telepor"), `is`(false))
@@ -220,6 +215,10 @@ class SimpleCommandTests : TestServer() {
             arrayOf("TestPlayer", "100", "200", "300"),
             listOf("<z>")
         )
+        assertAutocomplete(
+            arrayOf("TestPlayer", "100", "200", "3ABC"),
+            listOf("'3ABC' can't be parsed as a numeric value")
+        )
 
         // from to
         assertAutocomplete(
@@ -249,7 +248,7 @@ class SimpleCommandTests : TestServer() {
     fun `should throw CommandException when the player doesnt have permission`() {
         scenario1()
         // playerMock doesn't have permission to execute this command
-        assertThrowsMessage<CommandException>("You don't have permission to execute that command") {
+        assertThrowsMessage<CommandException>("[TestPlugin]: You don't have permission to execute that command") {
             execute(playerMock, "100", "200", "300")
         }
     }
@@ -257,22 +256,80 @@ class SimpleCommandTests : TestServer() {
     @Test
     fun `should throw error on invalid usages`() {
         scenario1()
-        assertThrowsMessage<CommandException>("'y-coordinate' can't be parsed as a double value") {
+        assertThrowsMessage<CommandException>(
+            """
+            [TestPlugin]: Unknown usage, instead use:
+            /teleport <x> <y> <z>
+            /teleport <world> <x> <y> <z>
+            /teleport <player> <x> <y> <z>
+            /teleport <from> <to>
+            """.trimIndent()
+        ) {
+            execute(adminMock, "")
+        }
+        assertThrowsMessage<CommandException>(
+            """
+            [TestPlugin]: Unknown usage, instead use:
+            /teleport <x> <y> <z>
+            /teleport <world> <x> <y> <z>
+            /teleport <player> <x> <y> <z>
+            /teleport <from> <to>
+            """.trimIndent()
+        ) {
+            execute(adminMock, "world", "100", "200", "300", "400")
+        }
+        assertThrowsMessage<CommandException>(
+            """
+            [TestPlugin]: Incorrect usage for argument y:
+            /teleport <x> <y> <z>
+                           └▶ 'y-coordinate' can't be parsed as a numeric value
+            """.trimIndent()
+        ) {
             execute(adminMock, "100", "y-coordinate")
         }
-        assertThrowsMessage<CommandException>("'z-coordinate' can't be parsed as a double value") {
+        assertThrowsMessage<CommandException>(
+            """
+            [TestPlugin]: Incorrect usage for argument z:
+            /teleport <x> <y> <z>
+                               └▶ 'z-coordinate' can't be parsed as a numeric value
+            """.trimIndent()
+        ) {
             execute(adminMock, "100", "200", "z-coordinate")
         }
-        assertThrowsMessage<CommandException>("The world 'wor' was not found") {
+        assertThrowsMessage<CommandException>(
+            """
+            [TestPlugin]: Incorrect usage for argument world:
+            /teleport <world> <x> <y> <z>
+                       └▶ The world 'wor' was not found
+            """.trimIndent()
+        ) {
             execute(adminMock, "wor")
         }
-        assertThrowsMessage<CommandException>("The world 'end' was not found") {
+        assertThrowsMessage<CommandException>(
+            """
+            [TestPlugin]: Incorrect usage for argument world:
+            /teleport <world> <x> <y> <z>
+                       └▶ The world 'end' was not found
+            """.trimIndent()
+        ) {
             execute(adminMock, "end")
         }
-        assertThrowsMessage<CommandException>("Player 'Adm' was not found") {
+        assertThrowsMessage<CommandException>(
+            """
+            [TestPlugin]: Incorrect usage for argument player:
+            /teleport <player>
+                       └▶ Player 'Adm' was not found
+            """.trimIndent()
+        ) {
             execute(adminMock, "Adm")
         }
-        assertThrowsMessage<CommandException>("'#' can't be parsed as a double value") {
+        assertThrowsMessage<CommandException>(
+            """
+            [TestPlugin]: Incorrect usage for argument x:
+            /teleport <world> <x> <y> <z>
+                               └▶ '#' can't be parsed as a numeric value
+            """.trimIndent()
+        ) {
             execute(adminMock, "world", "#")
         }
     }

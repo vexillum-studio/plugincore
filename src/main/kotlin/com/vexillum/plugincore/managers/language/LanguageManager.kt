@@ -2,7 +2,10 @@ package com.vexillum.plugincore.managers.language
 
 import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.extensions.copyResourceTo
-import com.vexillum.plugincore.managers.language.context.LanguageContext
+import com.vexillum.plugincore.language.InvalidLanguageException
+import com.vexillum.plugincore.language.Language
+import com.vexillum.plugincore.language.LocalLanguage
+import com.vexillum.plugincore.language.context.LanguageContext
 import com.vexillum.plugincore.util.JsonUtil.JSON_EXTENSION
 import com.vexillum.plugincore.util.JsonUtil.JSON_GLOB_MATCHER
 import java.io.File
@@ -18,11 +21,11 @@ import kotlin.io.path.name
 import kotlin.reflect.KClass
 
 class LanguageManager<T : Any> internal constructor(
-    private val pluginCore: PluginCore,
+    override val pluginCore: PluginCore,
     private val languageClass: KClass<T>,
     private val originFolderPath: String,
     private val destinationFolderPath: String
-) : LanguageContext<T>, PluginCore by pluginCore {
+) : LanguageContext<T> {
 
     private val languages = EnumMap<LocalLanguage, Language<T>>(LocalLanguage::class.java)
 
@@ -54,7 +57,7 @@ class LanguageManager<T : Any> internal constructor(
         createDestinationFolder()
         useOriginPath { originPath ->
 
-            val destinationPath = plugin.dataFolder.toPath().resolve(destinationFolderPath)
+            val destinationPath = pluginCore.plugin.dataFolder.toPath().resolve(destinationFolderPath)
                 .also { require(it.isDirectory()) { "Destination folder must be a directory" } }
 
             val originLanguages = languagePaths(originPath)
@@ -71,12 +74,12 @@ class LanguageManager<T : Any> internal constructor(
                     val fileName = originLanguage.fileName
                     val destinationFilePath = destinationPath.resolve(fileName)
                     if (!destinationFilePath.exists()) {
-                        logManager.info("Trying to import origin language file: $fileName")
+                        pluginCore.logManager.info("Trying to import origin language file: $fileName")
                         loadLanguage(localLanguage, originLanguage)
                         originLanguage.copyTo(destinationFilePath, true)
-                        logManager.info("Imported missing origin language file: $fileName")
+                        pluginCore.logManager.info("Imported missing origin language file: $fileName")
                     } else {
-                        logManager.warning("Loading origin language file: $fileName as fallback")
+                        pluginCore.logManager.warning("Loading origin language file: $fileName as fallback")
                         loadLanguage(localLanguage, originLanguage)
                     }
                 }
@@ -84,15 +87,13 @@ class LanguageManager<T : Any> internal constructor(
     }
 
     private fun useOriginPath(block: (Path) -> Unit) {
-        val tempFile = File(plugin.dataFolder, "$destinationFolderPath${File.separator}$TEMP_PATH")
+        val tempFile = File(pluginCore.plugin.dataFolder, "$destinationFolderPath${File.separator}$TEMP_PATH")
         try {
-            // Delete origin folder if exists and then create a fresh one
+            // Delete temp folder if exists and then create a fresh one
             tempFile.deleteRecursively()
             tempFile.mkdirs()
             val tempPath = tempFile.toPath().also {
-                require(it.isDirectory()) {
-                    "Origin folder must be a directory"
-                }
+                require(it.isDirectory()) { "Origin folder must be a directory" }
             }
             pluginCore::class.copyResourceTo(originFolderPath, tempPath)
             block(tempPath)
@@ -102,13 +103,13 @@ class LanguageManager<T : Any> internal constructor(
     }
 
     private fun createDestinationFolder() {
-        val folderName = "${plugin.name}${File.separator}$destinationFolderPath"
+        val folderName = "${pluginCore.plugin.name}${File.separator}$destinationFolderPath"
         try {
-            if (File(plugin.dataFolder, destinationFolderPath).mkdirs()) {
-                logManager.info("Created language folder in: $folderName")
+            if (File(pluginCore.plugin.dataFolder, destinationFolderPath).mkdirs()) {
+                pluginCore.logManager.info("Created language folder in: $folderName")
             }
         } catch (e: Exception) {
-            logManager.error("Error creating language folder $folderName: $e")
+            pluginCore.logManager.error("Error creating language folder $folderName: $e")
         }
     }
 
@@ -120,7 +121,7 @@ class LanguageManager<T : Any> internal constructor(
                 val withOutExtension = fileName.removeSuffix(JSON_EXTENSION)
                 val localLanguage = LocalLanguage.ofCode(withOutExtension)
                 if (localLanguage == null) {
-                    logManager.warning(
+                    pluginCore.logManager.warning(
                         "The file '$fileName' defined in $path folder doesn't match any known language format"
                     )
                 }
@@ -134,12 +135,12 @@ class LanguageManager<T : Any> internal constructor(
                 try {
                     val language = Language.create(localLanguage, inputStream, languageClass)
                     languages[localLanguage] = language
-                    logManager.info("${localLanguage.languageName} language successfully loaded")
+                    pluginCore.logManager.info("${localLanguage.languageName} language successfully loaded")
                 } catch (e: InvalidLanguageException) {
                     e.throwWithFileName(path.absolutePathString())
                 }
             } catch (e: Exception) {
-                logManager.error("Failed to load language ${path.name}:")
+                pluginCore.logManager.error("Failed to load language ${path.name}:")
                 throw e
             }
         }

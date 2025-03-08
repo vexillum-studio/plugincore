@@ -5,13 +5,15 @@ import com.vexillum.plugincore.managers.command.CommandManager
 import com.vexillum.plugincore.managers.config.ConfigManager
 import com.vexillum.plugincore.managers.language.LanguageManager
 import com.vexillum.plugincore.managers.log.LogManager
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
 class ManagerFactory(
-    private val pluginCore: PluginCore
+    val pluginCore: PluginCore
 ) {
 
+    private val started = AtomicBoolean(false)
     private val configManagers = mutableMapOf<KClass<*>, ConfigManager<*>>()
     private val languageManagers = mutableMapOf<KClass<*>, LanguageManager<*>>()
     private val commandManager by lazy {
@@ -21,11 +23,18 @@ class ManagerFactory(
     internal fun start() {
         configManagers.values.forEach { it.reload() }
         languageManagers.values.forEach { it.reload() }
+        started.set(true)
     }
 
     internal fun stop() {
         configManagers.values.forEach { it.plugin.saveConfig() }
         commandManager.unregisterAll()
+        started.set(false)
+    }
+
+    fun reload() {
+        stop()
+        start()
     }
 
     fun newLogManager() =
@@ -43,7 +52,12 @@ class ManagerFactory(
             configClass,
             originFolderPath = originPath,
             destinationFolderPath = destinationPath
-        ).also { configManagers[configClass] = it }
+        ).also {
+            configManagers[configClass] = it
+            if (started.get()) {
+                it.reload()
+            }
+        }
 
     fun <T : Any> newLanguageManager(
         languageClass: KClass<T>,
@@ -55,7 +69,12 @@ class ManagerFactory(
             languageClass,
             originFolderPath = originFolderPath,
             destinationFolderPath = destinationFolderPath
-        ).also { languageManagers[languageClass] = it }
+        ).also {
+            languageManagers[languageClass] = it
+            if (started.get()) {
+                it.reload()
+            }
+        }
 
     fun <T : Any> config(configClass: KClass<T>): ConfigManager<T> =
         configManagers[configClass] as? ConfigManager<T>
@@ -65,7 +84,8 @@ class ManagerFactory(
         config(T::class)
 
     fun <T : Any> language(languageClass: KClass<T>): LanguageManager<T> =
-        languageManagers[languageClass] as? LanguageManager<T> ?: error("No LanguageManager registered for $languageClass")
+        languageManagers[languageClass] as? LanguageManager<T>
+            ?: error("No LanguageManager registered for $languageClass")
 
     inline fun <reified T : Any> language() =
         language(T::class)

@@ -1,4 +1,4 @@
-package com.vexillum.plugincore.managers.language
+package com.vexillum.plugincore.language
 
 import java.util.Locale
 

@@ -1,6 +1,6 @@
 package com.vexillum.plugincore.managers.config
 
-import com.vexillum.plugincore.pluginCore
+import com.vexillum.plugincore.pluginCoreBase
 import org.bukkit.Material
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -28,7 +28,7 @@ class ConfigManagerTests {
     @Test
     fun `should correctly load a config file`() {
 
-        val managerFactory = pluginCore.managerFactory
+        val managerFactory = pluginCoreBase.managerFactory
 
         val configManager = managerFactory.newConfigManager(
             TestConfig::class,

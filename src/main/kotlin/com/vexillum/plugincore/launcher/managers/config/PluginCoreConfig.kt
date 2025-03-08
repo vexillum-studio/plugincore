@@ -1,6 +1,7 @@
 package com.vexillum.plugincore.launcher.managers.config
 
 data class PluginCoreConfig(
+    val monospacedFont: Boolean,
     val logs: LogConfig
 )
 

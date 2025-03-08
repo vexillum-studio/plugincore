@@ -35,3 +35,11 @@ fun <T> Sequence<T>.sortByLevenshtein(
     sortedBy {
         levenshteinDistance(input, it.selector())
     }
+
+fun <T> Collection<T>.sortByLevenshtein(
+    input: String,
+    selector: T.() -> String
+): Collection<T> =
+    sortedBy {
+        levenshteinDistance(input, it.selector())
+    }

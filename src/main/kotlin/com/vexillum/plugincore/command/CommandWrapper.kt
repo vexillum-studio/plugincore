@@ -1,9 +1,11 @@
 package com.vexillum.plugincore.command
 
+import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.command.session.CommandSession
 import com.vexillum.plugincore.command.session.Session
+import com.vexillum.plugincore.entities.BukkitConsole
 import com.vexillum.plugincore.extensions.tryCastOrNull
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
 import org.bukkit.command.CommandSender
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -13,11 +15,12 @@ import java.util.regex.Pattern
 import org.bukkit.command.Command as BukkitCommand
 
 internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
+    private val pluginCore: PluginCore,
     private val agentSupplier: (C) -> A?,
     private val command: Command<A>
 ) : BukkitCommand(
     command.name,
-    command.name,
+    command.description?.let { it(BukkitConsole) } ?: "",
     command.toString(),
     command.aliases.toList()
 ),
@@ -29,35 +32,38 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
 
     private fun applyToSession(agent: A, block: Session<A>.() -> Session<A>): CommandSession<A> =
         sessions.compute(agent) { _, value ->
-            value?.block() ?: Session(agent)
+            value?.block() ?: Session(agent).block()
         }!!
 
     @EventHandler
-    fun onCommandPreprocess(event: PlayerCommandPreprocessEvent) {
+    fun on(event: PlayerCommandPreprocessEvent) {
         val sender = agentFromSender(event.player) ?: return
         val message = event.message
         val matcher = pattern.matcher(message)
         if (!matcher.matches()) {
             sessions.remove(sender)
+            return
         }
         val label = matcher.group("label")
         if (!command.matches(label)) {
             sessions.remove(sender)
+            return
         }
         val captured = matcher.group("captured")
         applyToSession(sender) { copy(capturedInput = captured) }
-        event.isCancelled = true
     }
 
     override fun execute(sender: CommandSender, label: String, args: Array<String>): Boolean {
+        if (!command.matches(label)) return false
         val agent = agentFromSender(sender) ?: return false
         val session = applyToSession(agent) { copy(args = args) }
         try {
             command.execute(session)
+            return true
         } catch (e: CommandException) {
             agent.sendMessage(e.message)
+            return false
         }
-        return true
     }
 
     override fun tabComplete(sender: CommandSender, alias: String, args: Array<String>): MutableList<String> {

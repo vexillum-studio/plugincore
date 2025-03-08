@@ -21,6 +21,9 @@ formatting:
         ignoreBackTickedIdentifier: true
 
 complexity:
+    LongParameterList:
+        functionThreshold: 10
+        constructorThreshold: 10
     NestedBlockDepth:
         threshold: 5
 
@@ -40,4 +43,4 @@ style:
     MagicNumber:
         ignoreAnnotation: true
         ignoreEnums: true
-        ignoreNumbers: ['-1', '0', '1', '2', '100']
+        ignoreNumbers: ['-1', '0', '0.5', '1.0', '1', '2', '100']

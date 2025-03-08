@@ -1,4 +1,4 @@
-package com.vexillum.plugincore.managers.language
+package com.vexillum.plugincore.language
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -8,12 +8,13 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.vexillum.plugincore.managers.language.node.LanguageArray
-import com.vexillum.plugincore.managers.language.node.LanguageContainer
-import com.vexillum.plugincore.managers.language.node.LanguageIdentity
-import com.vexillum.plugincore.managers.language.node.LanguageObject
-import com.vexillum.plugincore.managers.language.node.LanguageValue
-import com.vexillum.plugincore.managers.language.node.ScopedNode
+import com.vexillum.plugincore.language.node.LanguageArray
+import com.vexillum.plugincore.language.node.LanguageContainer
+import com.vexillum.plugincore.language.node.LanguageIdentity
+import com.vexillum.plugincore.language.node.LanguageIdentity.Companion.ID_FIELD
+import com.vexillum.plugincore.language.node.LanguageObject
+import com.vexillum.plugincore.language.node.LanguageValue
+import com.vexillum.plugincore.language.node.ScopedNode
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
@@ -35,13 +36,6 @@ class LanguageDeserializer<T : Any>(
 
     private val valueIndex = AtomicInteger()
     private val languageIdentities = mutableMapOf<Int, LanguageIdentity>()
-
-    private fun deserialize(p: JsonParser): Message {
-        val node = p.codec.readTree<JsonNode>(p)
-        val id = node.get(ID_FIELD).asInt()
-        val languageIdentity = languageIdentities.getValue(id)
-        return languageIdentity.toNavigableMessage()
-    }
 
     fun parseLanguage(languageStream: InputStream): T {
         languageStream.use {
@@ -110,12 +104,11 @@ class LanguageDeserializer<T : Any>(
 
         @Suppress("UNCHECKED_CAST")
         override fun deserialize(parser: JsonParser, context: DeserializationContext?): M {
-            val message = deserialize(parser)
+            val node = parser.codec.readTree<JsonNode>(parser)
+            val id = node.get(ID_FIELD).asInt()
+            val languageIdentity = languageIdentities.getValue(id)
+            val message = languageIdentity.toMessage()
             return message as? M ?: error("Unable to parse, expected Message or MessageList language node")
         }
-    }
-
-    companion object {
-        private const val ID_FIELD = "id"
     }
 }

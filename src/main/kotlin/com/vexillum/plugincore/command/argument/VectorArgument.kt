@@ -3,7 +3,8 @@ package com.vexillum.plugincore.command.argument
 import com.vexillum.plugincore.command.extractor.DoubleExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
 import com.vexillum.plugincore.command.session.CommandUser
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageMessage
 import org.bukkit.util.Vector
 
 open class VectorArgument<Sender : LanguageAgent>(
@@ -22,9 +23,9 @@ open class VectorArgument<Sender : LanguageAgent>(
     }
 
     data class VectorDescriptor(
-        val x: String,
-        val y: String,
-        val z: String
+        val x: LanguageMessage,
+        val y: LanguageMessage,
+        val z: LanguageMessage
     ) {
 
         companion object {

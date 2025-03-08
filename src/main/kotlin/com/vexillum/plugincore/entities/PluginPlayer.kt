@@ -1,8 +1,8 @@
 package com.vexillum.plugincore.entities
 
+import com.vexillum.plugincore.language.LanguageAgent
+import com.vexillum.plugincore.language.LocalLanguage
 import com.vexillum.plugincore.launcher.entities.PluginCorePlayer
-import com.vexillum.plugincore.managers.language.LanguageAgent
-import com.vexillum.plugincore.managers.language.LocalLanguage
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Sound

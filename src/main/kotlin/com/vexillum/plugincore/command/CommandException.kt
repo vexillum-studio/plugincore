@@ -1,11 +1,24 @@
 package com.vexillum.plugincore.command
 
-open class CommandException(message: String? = null) : Exception(message)
+import com.vexillum.plugincore.language.LanguageException
+import com.vexillum.plugincore.language.LanguageMessage
+import com.vexillum.plugincore.language.message
 
-open class LanguageException(message: String) : CommandException(message)
+open class CommandException(message: LanguageMessage) : LanguageException(message) {
+    constructor(message: String) : this(message(message))
+}
 
-internal class ArgumentMapException(override val cause: Exception) : CommandException()
+internal class ArgumentExtractException(
+    message: LanguageMessage,
+    val descriptor: LanguageMessage
+) : CommandException(message)
 
-internal class NoNextArgumentException : CommandException()
+internal class ArgumentMapException(
+    override val cause: Exception
+) : CommandException("Can't map argument")
 
-internal class ArgumentsNotDepletedException : CommandException()
+internal class NoNextArgumentException :
+    CommandException("No next argument")
+
+internal class ArgumentsNotDepletedException :
+    CommandException("Arguments not depleted")

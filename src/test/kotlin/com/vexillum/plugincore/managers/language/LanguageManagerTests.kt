@@ -1,7 +1,9 @@
 package com.vexillum.plugincore.managers.language
 
-import com.vexillum.plugincore.managers.language.LocalLanguage.*
-import com.vexillum.plugincore.pluginCore
+import com.vexillum.plugincore.language.LocalLanguage.*
+import com.vexillum.plugincore.language.Message
+import com.vexillum.plugincore.language.resolve
+import com.vexillum.plugincore.pluginCoreBase
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.notNullValue
@@ -19,7 +21,7 @@ class LanguageManagerTests {
 
     @BeforeEach
     fun setUp() {
-        languageManager = pluginCore.managerFactory.newLanguageManager(
+        languageManager = pluginCoreBase.managerFactory.newLanguageManager(
             TestLanguage::class,
             "data/language",
             "language-test"

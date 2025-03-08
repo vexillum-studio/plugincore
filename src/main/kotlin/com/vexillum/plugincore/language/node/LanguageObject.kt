@@ -1,4 +1,4 @@
-package com.vexillum.plugincore.managers.language.node
+package com.vexillum.plugincore.language.node
 
 internal class LanguageObject(
     override val parent: LanguageContainer? = null,

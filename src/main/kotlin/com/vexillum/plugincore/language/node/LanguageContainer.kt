@@ -1,4 +1,4 @@
-package com.vexillum.plugincore.managers.language.node
+package com.vexillum.plugincore.language.node
 
 internal abstract class LanguageContainer : ScopedNode() {
 

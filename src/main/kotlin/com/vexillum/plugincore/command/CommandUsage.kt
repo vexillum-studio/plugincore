@@ -4,7 +4,9 @@ import com.vexillum.plugincore.command.argument.Argument
 import com.vexillum.plugincore.command.session.CommandSession
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.command.session.ConsoleUser
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageMessage
+import com.vexillum.plugincore.language.buildMessage
 import com.vexillum.plugincore.util.Constants.SPACE
 
 interface CommandUsage<Sender : LanguageAgent> {
@@ -15,21 +17,18 @@ interface CommandUsage<Sender : LanguageAgent> {
 
     fun execute(session: CommandSession<Sender>): ExecutionContext<Sender>
 
-    fun describe(user: CommandUser<*>): String =
-        with(user) {
-            arguments
-                .asSequence()
-                .map { it.describe(this) }
-                .joinToString(
-                    separator = SPACE
-                )
+    fun describe(user: CommandUser<*>): LanguageMessage =
+        buildMessage {
+            arguments.joinMessage(separator = SPACE) {
+                describe(user)
+            }
         }
 }
 
 internal abstract class BaseCommandUsage<Sender : LanguageAgent> : CommandUsage<Sender> {
 
     override fun toString() =
-        describe(ConsoleUser)
+        describe(ConsoleUser).toString()
 }
 
 internal class CommandUsage0<Sender : LanguageAgent>(

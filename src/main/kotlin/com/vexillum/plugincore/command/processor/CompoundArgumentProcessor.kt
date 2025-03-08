@@ -1,7 +1,7 @@
 package com.vexillum.plugincore.command.processor
 
 import com.vexillum.plugincore.command.session.CommandUser
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
 
 class CompoundArgumentProcessor<Sender : LanguageAgent, BaseType : Any, TransitionType : Any, Type : Any>(
     private val baseProcessor: ArgumentProcessor<Sender, BaseType, TransitionType>,

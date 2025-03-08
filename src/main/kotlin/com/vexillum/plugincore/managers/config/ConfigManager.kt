@@ -10,7 +10,7 @@ import java.io.File
 import kotlin.reflect.KClass
 
 class ConfigManager<T : Any> internal constructor(
-    pluginCore: PluginCore,
+    override val pluginCore: PluginCore,
     private val configName: String,
     private val configClass: KClass<T>,
     private val originFolderPath: String,

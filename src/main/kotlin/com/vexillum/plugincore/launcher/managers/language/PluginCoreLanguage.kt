@@ -1,6 +1,6 @@
 package com.vexillum.plugincore.launcher.managers.language
 
-import com.vexillum.plugincore.managers.language.Message
+import com.vexillum.plugincore.language.Message
 
 data class CommandParsing(
     val boolean: Message,
@@ -13,11 +13,16 @@ data class CommandParsing(
     val location: Message
 )
 
+data class CommandValidation(
+    val numberRange: Message
+)
+
 data class CommandDescriptor(
     val color: Message,
     val accent: Message,
     val prefix: Message,
     val postfix: Message,
+    val marker: Message,
     val world: Message,
     val x: Message,
     val y: Message,
@@ -25,15 +30,19 @@ data class CommandDescriptor(
 )
 
 data class CommandLanguage(
-    val prefix: Message,
-    val errorColor: Message,
-    val errorAccent: Message,
+    val unknownUsage: Message,
+    val incorrectUsage: Message,
     val permissionMessage: Message,
     val transformMessage: Message,
     val parsing: CommandParsing,
+    val validation: CommandValidation,
     val descriptor: CommandDescriptor
 )
 
 data class PluginCoreLanguage(
+    val prefix: Message,
+    val color: Message,
+    val errorColor: Message,
+    val errorAccent: Message,
     val command: CommandLanguage
 )

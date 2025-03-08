@@ -2,22 +2,22 @@ package com.vexillum.plugincore.command
 
 import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.command.argument.Argument
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
 
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "LongParameterList")
 class CommandBuilder<Sender : LanguageAgent> internal constructor(
     private val pluginCore: PluginCore
 ) {
 
-    private var startToken: String = Command.SLASH
+    var startToken: String = Command.SLASH
     lateinit var name: CommandName
     private var aliases: MutableSet<CommandName> = mutableSetOf()
-    private var description: ((Sender) -> String)? = null
+    private var description: ((LanguageAgent) -> String)? = null
     var permission: String? = null
     private var usages: MutableList<CommandUsage<Sender>> = mutableListOf()
-    private var subCommands: MutableSet<Command<Sender>> = mutableSetOf()
+    private var subCommands: MutableSet<SimpleCommand<Sender>> = mutableSetOf()
 
-    fun description(block: (Sender) -> String) {
+    fun description(block: (LanguageAgent) -> String) {
         description = block
     }
 
@@ -65,7 +65,6 @@ class CommandBuilder<Sender : LanguageAgent> internal constructor(
         usages.add(CommandUsage4(arg1, arg2, arg3, arg4, block))
     }
 
-    @Suppress("LongParameterList")
     fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any> usage(
         arg1: Argument<Sender, T1>,
         arg2: Argument<Sender, T2>,
@@ -77,7 +76,6 @@ class CommandBuilder<Sender : LanguageAgent> internal constructor(
         usages.add(CommandUsage5(arg1, arg2, arg3, arg4, arg5, block))
     }
 
-    @Suppress("LongParameterList")
     fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any, T6 : Any> usage(
         arg1: Argument<Sender, T1>,
         arg2: Argument<Sender, T2>,
@@ -95,9 +93,10 @@ class CommandBuilder<Sender : LanguageAgent> internal constructor(
         subCommands.add(command)
     }
 
-    fun build(): Command<Sender> {
+    internal fun build(): SimpleCommand<Sender> {
         require(::name.isInitialized) { "The property name must be defined" }
         return SimpleCommand(
+            pluginCore,
             startToken,
             name,
             aliases,

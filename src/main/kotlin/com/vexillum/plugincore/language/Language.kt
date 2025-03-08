@@ -1,4 +1,4 @@
-package com.vexillum.plugincore.managers.language
+package com.vexillum.plugincore.language
 
 import java.io.InputStream
 import kotlin.reflect.KClass
@@ -28,5 +28,5 @@ class Language<out T : Any> private constructor(
 fun <T : Any> Language<T>.resolve(
     replacements: Map<String, Any> = emptyMap(),
     block: T.() -> Message
-): String =
+): LanguageMessage =
     language.run(block).resolve(replacements)

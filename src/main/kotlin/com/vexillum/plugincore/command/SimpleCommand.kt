@@ -1,23 +1,43 @@
 package com.vexillum.plugincore.command
 
+import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.command.session.CommandSession
+import com.vexillum.plugincore.command.session.User
 import com.vexillum.plugincore.command.suggestion.CommandSuggestion
 import com.vexillum.plugincore.command.suggestion.SubCommandSuggestion
+import com.vexillum.plugincore.command.suggestion.Suggestion
 import com.vexillum.plugincore.command.suggestion.UsageSuggestion
+import com.vexillum.plugincore.extensions.PluginCoreExtensions
 import com.vexillum.plugincore.extensions.takeWhen
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageMessage
+import com.vexillum.plugincore.language.LanguageMessageBuilder
+import com.vexillum.plugincore.language.buildMessage
+import com.vexillum.plugincore.language.context.LanguageState
+import com.vexillum.plugincore.language.message
+import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
+import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
 import com.vexillum.plugincore.util.sortByLevenshtein
 
 @Suppress("LongParameterList")
 internal class SimpleCommand<Sender : LanguageAgent>(
+    override val pluginCore: PluginCore,
     override val startToken: String,
     override val name: CommandName,
     override val aliases: Set<CommandName>,
-    override val description: ((Sender) -> String)?,
+    override val description: ((LanguageAgent) -> String)?,
     override val permission: String?,
     override val usages: List<CommandUsage<Sender>>,
-    override val subCommands: Set<Command<Sender>>
-) : Command<Sender> {
+    override val subCommands: Set<SimpleCommand<Sender>>
+) : Command<Sender>, PluginCoreExtensions {
+
+    private var parent: SimpleCommand<Sender>? = null
+
+    init {
+        for (command in subCommands) {
+            command.parent = this
+        }
+    }
 
     override fun execute(session: CommandSession<Sender>) {
         // Check for permission
@@ -31,26 +51,49 @@ internal class SimpleCommand<Sender : LanguageAgent>(
                     try {
                         subCommand.execute(session.moveToNextArg())
                         return
-                    } catch (e: CommandException) {
+                    } catch (e: Exception) {
                         lastException = e
                     }
                 }
             }
         }
-        var maxMatchingScore = -1.0
+        var executionContext: ExecutionContext<Sender>? = null
         usages.forEach { usage ->
+            usage.toString()
             val context = usage.execute(session.resetSession())
             if (context.completed) {
                 return
             }
             val executionException = context.exception
-            if (executionException != null && context.matchingScore > maxMatchingScore) {
+            if (
+                executionException != null &&
+                (executionContext == null || context.matchingScore > executionContext!!.matchingScore)
+            ) {
                 lastException = executionException
-                maxMatchingScore = context.matchingScore
+                executionContext = context
             }
         }
-        lastException?.let {
-            throw it
+        val exception = lastException ?: return
+        val context = executionContext ?: return
+        val lastArg = session.currentArg
+        // Show all usages message when none of the usages are satisfied
+        if (
+            (lastArg.isNullOrEmpty() && parent == null) ||
+            exception is ArgumentsNotDepletedException
+        ) {
+            session.agent.commandException { usagesMessage(this) }
+        }
+        if (exception is CommandException) {
+            // Show command exceptions
+            if (exception is ArgumentExtractException) {
+                session.agent.commandException { argumentExtractMessage(session, exception, context) }
+            }
+            session.agent.commandException { exception.languageMessage }
+        } else {
+            // Show other type of exceptions
+            exception.message?.let {
+                session.agent.commandException { message(it) }
+            }
         }
     }
 
@@ -73,29 +116,35 @@ internal class SimpleCommand<Sender : LanguageAgent>(
 
         val lastArg = session.currentArg
         val autocompletes = mutableListOf<CommandSuggestion<Sender>>()
-
-        autocompleteSubCommands(autocompletes)
+        if (args.size == 1) {
+            autocompleteSubCommands(autocompletes)
+        }
         autocompleteUsages(session, autocompletes)
 
         return autocompletes
-            .asSequence()
             .distinct()
-            .let {
+            .let { rawList ->
                 if (!lastArg.isNullOrEmpty()) {
-                    it.filter { autocomplete ->
-                        !autocomplete.matchable || autocomplete.value.contains(lastArg, ignoreCase = true)
-                    }.sortByLevenshtein(lastArg) { value }
+                    rawList
+                        .filter { autocomplete ->
+                            !autocomplete.matchable || autocomplete.value.contains(lastArg, ignoreCase = true)
+                        }
+                        .sortByLevenshtein(lastArg) { value }
+                        .take(MAX_SUGGESTIONS)
                 } else {
-                    it
+                    rawList
                 }
             }
-            .map { it.describe(session) }
+            .take(MAX_SUGGESTIONS)
+            .map { autocomplete ->
+                autocomplete.describe(session).stripped()
+            }
             .toMutableList()
     }
 
     private fun checkPermission(session: CommandSession<*>) {
         if (permission?.let { session.agent.hasPermission(it) } == false) {
-            session.languageException { command.permissionMessage }
+            session.agent.commandException { resolve { command.permissionMessage } }
         }
     }
 
@@ -103,8 +152,8 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         autocompletes: MutableList<CommandSuggestion<Sender>>
     ) =
         takeWhen(subCommands.isNotEmpty()) {
-            (subCommands.map { it.name } + subCommands.flatMap { it.aliases }).forEach { alias ->
-                autocompletes.add(SubCommandSuggestion(alias))
+            subCommands.map { it.name }.forEach { alias ->
+                autocompletes.add(SubCommandSuggestion(message(alias)))
             }
         }
 
@@ -113,6 +162,7 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         autocompletes: MutableList<CommandSuggestion<Sender>>
     ) {
         val args = session.args
+        val extractorsWithError = mutableListOf<LanguageMessage>()
         for (usage in usages) {
             val arguments = usage.arguments
             val totalSlots = arguments.sumOf { it.slots }
@@ -133,6 +183,11 @@ internal class SimpleCommand<Sender : LanguageAgent>(
                         extractorAutocompletes.addAll(it)
                     }
             }
+            if (!currentArg.isNullOrEmpty() && !context.validLastExecution) {
+                context.exception?.let { commandException ->
+                    extractorsWithError.add(commandException.languageMessage)
+                }
+            }
             if (extractorAutocompletes.isEmpty()) {
                 if (currentArg.isNullOrEmpty() || context.validLastExecution) {
                     autocompletes.add(UsageSuggestion(lastExtractor.descriptor(session)))
@@ -140,14 +195,87 @@ internal class SimpleCommand<Sender : LanguageAgent>(
             }
             autocompletes.addAll(extractorAutocompletes)
         }
-    }
 
-    fun describe(sender: Sender) = buildString {
-        append(name)
-        description?.let {
-            ": ${description.invoke(sender)}"
+        if (autocompletes.isEmpty() && extractorsWithError.isNotEmpty()) {
+            autocompletes.add(Suggestion(extractorsWithError.first()))
         }
     }
+
+    private fun usagesMessage(
+        languageState: LanguageState<Sender, PluginCoreLanguage>
+    ): LanguageMessage =
+        with(languageState) {
+            val message = LanguageMessageBuilder(resolve { command.unknownUsage })
+            for (usage in usages) {
+                message.appendLine(usage.usageMessage(this))
+            }
+            message.build()
+        }
+
+    private fun CommandUsage<Sender>.usageMessage(
+        languageState: LanguageState<Sender, PluginCoreLanguage>
+    ): LanguageMessage =
+        with(languageState) {
+            resolve { errorColor } + message("$startToken$name ") + describe(User(languageState))
+        }
+
+    private fun argumentExtractMessage(
+        session: CommandSession<Sender>,
+        exception: ArgumentExtractException,
+        context: ExecutionContext<Sender>
+    ): LanguageMessage =
+        with(session) {
+            buildMessage {
+                append(
+                    resolve(mapOf("argument" to exception.descriptor)) {
+                        command.incorrectUsage
+                    }
+                )
+                mark()
+                appendLine("$startToken$name")
+                val argument = context.lastArgument!!
+                val lastExtractor = context.lastExtractor
+                var identAmount = 0
+                for (extractor in argument.extractors) {
+                    appendSpace()
+                    if (extractor == lastExtractor) {
+                        identAmount = measure() + resolve { command.descriptor.prefix }.strippedLength
+                    }
+                    append(extractor.describe(session))
+                }
+                appendLine()
+                if (pluginCoreInstance.configManager().monospacedFont) {
+                    // Append ident
+                    appendSpace(identAmount)
+                    // Append marker
+                    append(resolve { errorAccent })
+                    append(resolve { command.descriptor.marker })
+                    append(resolve { errorColor })
+                    appendSpace()
+                }
+                // Append actual error message
+                append(exception.languageMessage)
+            }
+        }
+
+    override fun <A : LanguageAgent> A.commandMessage(
+        block: LanguageState<A, PluginCoreLanguage>.() -> LanguageMessage
+    ) =
+        sendMessage(prefixedErrorMessage(block))
+
+    override fun <A : LanguageAgent> A.commandException(
+        block: LanguageState<A, PluginCoreLanguage>.() -> LanguageMessage
+    ): Nothing =
+        throw CommandException(prefixedErrorMessage(block))
+
+    private fun <A : LanguageAgent> A.prefixedErrorMessage(
+        block: LanguageState<A, PluginCoreLanguage>.() -> LanguageMessage
+    ): LanguageMessage =
+        languageState(pluginCore).run {
+            prefixedMessage {
+                resolve { errorColor } + block()
+            }
+        }
 
     override fun toString() = name
 
@@ -156,4 +284,8 @@ internal class SimpleCommand<Sender : LanguageAgent>(
 
     override fun equals(other: Any?): Boolean =
         (other as? Command<*>)?.name == name
+
+    companion object {
+        private const val MAX_SUGGESTIONS = 20
+    }
 }

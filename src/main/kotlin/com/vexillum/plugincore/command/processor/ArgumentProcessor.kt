@@ -1,7 +1,7 @@
 package com.vexillum.plugincore.command.processor
 
 import com.vexillum.plugincore.command.session.CommandUser
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
 
 interface ArgumentProcessor<Sender : LanguageAgent, BaseType : Any, Type : Any> {
 

@@ -1,16 +1,24 @@
 package com.vexillum.plugincore.scenarios
 
 import com.vexillum.plugincore.entities.PluginPlayer
+import com.vexillum.plugincore.language.Language
+import com.vexillum.plugincore.language.LocalLanguage.ENGLISH
+import com.vexillum.plugincore.language.context.State
 import com.vexillum.plugincore.launcher.PluginCoreLauncher
 import com.vexillum.plugincore.launcher.entities.PluginCorePlayer
+import com.vexillum.plugincore.launcher.managers.config.LogConfig
+import com.vexillum.plugincore.launcher.managers.config.PluginCoreConfig
 import com.vexillum.plugincore.launcher.managers.language.CommandDescriptor
 import com.vexillum.plugincore.launcher.managers.language.CommandLanguage
 import com.vexillum.plugincore.launcher.managers.language.CommandParsing
+import com.vexillum.plugincore.launcher.managers.language.CommandValidation
 import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
 import com.vexillum.plugincore.launcher.player.PluginCorePlayerManager
-import com.vexillum.plugincore.managers.language.Language
-import com.vexillum.plugincore.managers.language.LocalLanguage.ENGLISH
-import com.vexillum.plugincore.message
+import com.vexillum.plugincore.managers.config.ConfigManager
+import com.vexillum.plugincore.managers.language.MessageHelper
+import com.vexillum.plugincore.pluginCoreBase
+import java.util.Locale
+import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.GameMode.CREATIVE
 import org.bukkit.GameMode.SURVIVAL
@@ -19,25 +27,35 @@ import org.bukkit.World
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.MockedStatic
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.`when`
 import org.mockito.kotlin.KStubbing
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
-import java.util.Locale
-import java.util.UUID
 
-open class TestServer {
+@Suppress("LongMethod")
+open class TestServer : MessageHelper {
 
     private val mockedPlayers = mutableMapOf<UUID, PluginCorePlayer>()
     private val mockedWorlds = mutableMapOf<String, World>()
+    protected val pluginCoreLauncher = spy(PluginCoreLauncher()).apply {
+        plugin = pluginCoreBase.plugin
+    }
 
-    private lateinit var bukkit: MockedStatic<Bukkit>
-    private lateinit var pluginCoreLauncher: PluginCoreLauncher
+    private val serverMock = mock<Server> {
+        on { name } doReturn "TestServer"
+        on { onlinePlayers } doReturn mockedPlayers.values
+    }
+
+    private val bukkit: MockedStatic<Bukkit> = mockStatic(Bukkit::class.java).apply {
+        `when`(Bukkit.getServer()) doReturn serverMock
+        `when`(Bukkit.getConsoleSender()) doReturn mock()
+    }
 
     val worldMock = mockWorld {
         on { name } doReturn "world"
@@ -66,17 +84,9 @@ open class TestServer {
         on { world } doReturn worldMock
     }
 
-    val serverMock = mock<Server> {
-        on { name } doReturn "TestServer"
-        on { onlinePlayers } doReturn mockedPlayers.values
-    }
-
     @BeforeEach
     fun reset() {
-        bukkit = mockStatic(Bukkit::class.java)
         bukkit.apply {
-            `when`(Bukkit.getServer()) doReturn serverMock
-            `when`(Bukkit.getConsoleSender()) doReturn mock()
             `when`(Bukkit.getWorlds()) doReturn mockedWorlds.values.toMutableList()
             `when`(Bukkit.getOnlinePlayers()) doReturn mockedPlayers.values
         }
@@ -125,49 +135,95 @@ open class TestServer {
         stubbing: KStubbing<PluginPlayer>.() -> Unit
     ): PluginPlayer {
         val uuid = UUID.randomUUID()
+        val agent = mock<PluginCorePlayer> {
+            on { localLanguage } doReturn ENGLISH
+        }
         val pluginPlayer = mock<PluginCorePlayer> {
             on { uniqueId } doReturn uuid
             on { locale } doReturn Locale.ENGLISH.toString()
             on { localLanguage } doReturn ENGLISH
+            on { languageState(pluginCoreLauncher) } doAnswer { State(agent, pluginCoreLauncher.language(ENGLISH)) }
             stubbing.invoke(this)
         }
+
         mockedPlayers[uuid] = pluginPlayer
         return pluginPlayer
     }
 
     private fun mockLauncher() {
         val pluginCoreLanguage = PluginCoreLanguage(
+            prefix = message("[", param("pluginName"), "]: "),
+            color = message("&7"),
+            errorColor = message("&c"),
+            errorAccent = message("&4"),
             command = CommandLanguage(
-                prefix = message { "" },
-                errorColor = message { "" },
-                errorAccent = message { "" },
-                permissionMessage = message { "You don't have permission to execute that command" },
-                transformMessage = message { "You can't transform '${get("value")}' to '${get("to")}'" },
+                unknownUsage = message("Unknown usage, instead use:"),
+                incorrectUsage = message("Incorrect usage for argument ", param("argument"), ":"),
+                permissionMessage = message("You don't have permission to execute that command"),
+                transformMessage = message("You can't transform '", param("value"), "' to '", param("to"), "'"),
                 parsing = CommandParsing(
-                    boolean = message { "'${get("value")}' can't be parsed as a boolean value" },
-                    integer = message { "'${get("value")}' can't be parsed as an integer value" },
-                    double = message { "'${get("value")}' can't be parsed as a double value" },
-                    enum = message { "'${get("value")}' must be one of the next values: ${get("possibleValues")}" },
-                    player = message { "Player '${get("name")}' was not found" },
-                    world = message { "The world '${get("value")}' was not found" },
-                    vector = message { "Invalid definition, use valid numbers for: <${get("x")}> <${get("y")}> <${get("z")}>" },
-                    location = message { "Invalid location, use: <${get("x")}> <${get("y")}> <${get("z")}>" }
+                    boolean = message("'", param("value"), "' can't be parsed as a boolean value"),
+                    integer = message("'", param("value"), "' can't be parsed as an integer value"),
+                    double = message("'", param("value"), "' can't be parsed as a numeric value"),
+                    enum = message("'", param("value"), "' must be one of the next values: ", param("possibleValues")),
+                    player = message("Player '", param("name"), "' was not found"),
+                    world = message("The world '", param("value"), "' was not found"),
+                    vector = message(
+                        "Invalid definition, use valid numbers for: <",
+                        param("x"),
+                        "> <",
+                        param("y"),
+                        "> <",
+                        param("z"),
+                        ">"
+                    ),
+                    location = message(
+                        "Invalid location, use: <",
+                        param("x"),
+                        "> <",
+                        param("y"),
+                        "> <",
+                        param("z"),
+                        ">"
+                    )
+                ),
+                validation = CommandValidation(
+                    numberRange = message(
+                        "The value ",
+                        param("value"),
+                        " must be between ",
+                        param("min"),
+                        " and ",
+                        param("max")
+                    )
                 ),
                 descriptor = CommandDescriptor(
-                    color = message { "" },
-                    accent = message { "" },
-                    prefix = message { "<" },
-                    postfix = message { ">" },
-                    world = message { "world" },
-                    x = message { "x" },
-                    y = message { "y" },
-                    z = message { "z" }
+                    color = message("&7"),
+                    accent = message("&c"),
+                    prefix = message("&c<"),
+                    postfix = message("&c>"),
+                    marker = message("└▶"),
+                    world = message("world"),
+                    x = message("x"),
+                    y = message("y"),
+                    z = message("z")
                 )
             )
         )
 
         val language = mock<Language<PluginCoreLanguage>> {
             on { language } doReturn pluginCoreLanguage
+        }
+
+        val configManager = mock<ConfigManager<PluginCoreConfig>> {
+            on { invoke() } doReturn PluginCoreConfig(
+                monospacedFont = true,
+                logs = LogConfig(
+                    folder = "logs",
+                    prefixFormat = "[hh:mm:ss.SSS]",
+                    fileFormat = "yyyy-MM-dd"
+                )
+            )
         }
 
         val playerManager = mock<PluginCorePlayerManager> {
@@ -177,8 +233,7 @@ open class TestServer {
             }
         }
 
-        pluginCoreLauncher = spy(PluginCoreLauncher())
-
+        doReturn(configManager).whenever(pluginCoreLauncher).configManager
         doReturn(language).whenever(pluginCoreLauncher).language(ENGLISH)
         doReturn(playerManager).whenever(pluginCoreLauncher).playerManager
 

@@ -4,7 +4,9 @@ import com.vexillum.plugincore.command.ExecutionContext
 import com.vexillum.plugincore.command.extractor.ArgumentExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
 import com.vexillum.plugincore.command.session.CommandUser
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageMessage
+import com.vexillum.plugincore.language.buildMessage
 import com.vexillum.plugincore.util.Constants.SPACE
 
 interface Argument<Sender : LanguageAgent, Type : Any> {
@@ -17,8 +19,10 @@ interface Argument<Sender : LanguageAgent, Type : Any> {
 
     fun get(context: ExecutionContext<Sender>): Type
 
-    fun describe(user: CommandUser<*>): String =
-        extractors.joinToString(separator = SPACE) { it.describe(user) }
+    fun describe(user: CommandUser<*>): LanguageMessage =
+        buildMessage {
+            extractors.joinMessage(SPACE) { describe(user) }
+        }
 }
 
 abstract class BaseArgument<Sender : LanguageAgent, Type : Any> : Argument<Sender, Type> {
@@ -227,13 +231,10 @@ abstract class PlainArgument<Sender : LanguageAgent, T1 : Any, Type : Any> :
 
     final override val slots: Int = Int.MAX_VALUE
 
-    final override val extractors = emptyList<ArgumentExtractor<Sender, T1>>()
+    final override val extractors by lazy { listOf(extractor) }
 
-    protected abstract val transform: (CommandUser<Sender>, String) -> Type
+    protected abstract val extractor: ArgumentExtractor<Sender, Type>
 
     final override fun get(context: ExecutionContext<Sender>): Type =
-        transform(
-            context,
-            context.capturedInput
-        )
+        extractor.extract(context, context.capturedInput)
 }

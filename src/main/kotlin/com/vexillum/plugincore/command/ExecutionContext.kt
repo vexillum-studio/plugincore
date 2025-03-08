@@ -3,7 +3,7 @@ package com.vexillum.plugincore.command
 import com.vexillum.plugincore.command.argument.Argument
 import com.vexillum.plugincore.command.extractor.ArgumentExtractor
 import com.vexillum.plugincore.command.session.CommandSession
-import com.vexillum.plugincore.managers.language.LanguageAgent
+import com.vexillum.plugincore.language.LanguageAgent
 import java.util.LinkedList
 
 class ExecutionContext<Sender : LanguageAgent> internal constructor(
@@ -14,7 +14,7 @@ class ExecutionContext<Sender : LanguageAgent> internal constructor(
     private val extractors = LinkedList<ArgumentExtractor<Sender, *>>()
     private var currentIndex: Int = -1
     private var lastExceptionIndex: Int? = null
-    private var lastException: Exception? = null
+    private var lastException: CommandException? = null
     private var currentMatchingScore: Double = 0.0
 
     val validLastExecution: Boolean get() =
@@ -23,13 +23,16 @@ class ExecutionContext<Sender : LanguageAgent> internal constructor(
     val executedSuccessfully: Boolean get() =
         currentIndex >= args.lastIndex
 
+    val lastArgument: Argument<Sender, *>? get() =
+        arguments.lastOrNull()
+
     val lastExtractor: ArgumentExtractor<Sender, *>? get() =
         extractors.getOrNull(args.lastIndex) ?: extractors.lastOrNull()
 
     val completed: Boolean get() =
         currentIndex == args.lastIndex && lastException == null
 
-    val exception: Exception? get() =
+    val exception: CommandException? get() =
         lastException
 
     val matchingScore: Double get() =
@@ -41,7 +44,7 @@ class ExecutionContext<Sender : LanguageAgent> internal constructor(
         apply {
             try {
                 block()
-            } catch (e: Exception) {
+            } catch (e: CommandException) {
                 lastException = e
                 lastExceptionIndex = currentIndex
             }

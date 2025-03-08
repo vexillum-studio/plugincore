@@ -1,0 +1,6 @@
+{
+  "reload": {
+    "start": "Reloading plugin data...",
+    "success": "Plugin data reloaded!"
+  }
+}

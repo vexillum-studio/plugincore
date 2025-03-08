@@ -1,5 +1,9 @@
 package com.vexillum.plugincore.managers.language
 
+import com.vexillum.plugincore.language.Language
+import com.vexillum.plugincore.language.Message
+import com.vexillum.plugincore.language.MessageList
+import com.vexillum.plugincore.language.resolve
 import com.vexillum.plugincore.languageFromJson
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -48,7 +52,7 @@ class LanguageTests {
                 "key5": "&4{key1}",
                 "key6": {
                     "nested": "nestedValue",
-                    "nestedComplex": "A chest is located at {descriptor.x} {x} {descriptor.y} {y} {descriptor.z} {z}",
+                    "nestedComplex": "{color1}A chest is located at {descriptor.x} {x} {descriptor.y} {y} {descriptor.z} {z}",
                     "nestedObject": {
                        "object": "{color1}Hello",
                        "newObject": "Descriptor is {descriptor.x} and Nested is {nested}"
@@ -120,7 +124,7 @@ class LanguageTests {
 
     @Test
     fun `should resolve various messages without replacements`() {
-        assertResolve("§1Hello nestedValue 7.6 A chest is located at x {x} y {y} z {z} 7.6 ") {
+        assertResolve("§1Hello nestedValue 7.6 §1A chest is located at x {x} y {y} z {z} 7.6 ") {
             key8
         }
     }
@@ -131,11 +135,36 @@ class LanguageTests {
         assertResolve("Descriptor is x and Nested is nestedValue") { key6.nestedObject.newObject }
     }
 
+    @Test
+    fun `should resolve and strip color from messages`() {
+        assertThat(language.resolve { key1 }.stripped(), `is`("Hello"))
+    }
+
+    @Test
+    fun `should resolve and replace overriding replacements`() {
+        val resolvedMessage = language.resolve { key6.nestedComplex }
+            .replace(
+                mapOf(
+                    "color1" to "COLOR1",
+                    "descriptor.x" to "X-coordinate",
+                    "descriptor.y" to "Y-coordinate",
+                    "descriptor.z" to "Z-coordinate",
+                    "x" to 100,
+                    "y" to 200,
+                    "z" to 300
+                )
+            )
+        assertThat(
+            resolvedMessage,
+            `is`("COLOR1A chest is located at X-coordinate 100 Y-coordinate 200 Z-coordinate 300")
+        )
+    }
+
     private fun assertResolve(
         expected: String,
         replacements: Map<String, Any> = emptyMap(),
         block: ExampleLanguage.() -> Message
     ) {
-        assertThat(language.resolve(replacements, block), `is`(expected))
+        assertThat(language.resolve(replacements, block).resolved(), `is`(expected))
     }
 }
