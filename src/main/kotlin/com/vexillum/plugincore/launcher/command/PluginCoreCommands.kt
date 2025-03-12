@@ -50,6 +50,7 @@ internal fun registerCommands(
             description {
                 "teleports to somewhere"
             }
+            addHelpCommand()
             addUsage(
                 SenderLocationArgument()
             ) { player, location ->

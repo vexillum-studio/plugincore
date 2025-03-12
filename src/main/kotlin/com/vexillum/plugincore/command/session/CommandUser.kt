@@ -1,7 +1,6 @@
 package com.vexillum.plugincore.command.session
 
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.context.LanguageState
-import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
+import com.vexillum.plugincore.language.context.DefaultState
 
-interface CommandUser<Sender : LanguageAgent> : LanguageState<Sender, PluginCoreLanguage>
+interface CommandUser<Sender : LanguageAgent> : DefaultState<Sender>

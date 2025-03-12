@@ -1,5 +1,6 @@
 package com.vexillum.plugincore.entities
 
+import com.vexillum.plugincore.command.session.CommandSession
 import com.vexillum.plugincore.language.LanguageAgent
 import com.vexillum.plugincore.language.LocalLanguage
 import org.bukkit.Bukkit
@@ -18,6 +19,8 @@ abstract class OfflinePluginPlayer private constructor(
     @Transient
     override val activeLanguage: LocalLanguage? =
         null // PluginCorePlayer.of(uniqueId).persistedLanguage.let { LocalLanguage.ofCode(it) }
+
+    override var currentCommandSession: CommandSession<*>? = null
 
     override fun hashCode(): Int =
         uniqueId.hashCode()

@@ -10,6 +10,7 @@ import com.vexillum.plugincore.command.suggestion.UsageSuggestion
 import com.vexillum.plugincore.extensions.PluginCoreExtensions
 import com.vexillum.plugincore.extensions.takeWhen
 import com.vexillum.plugincore.language.LanguageAgent
+import com.vexillum.plugincore.language.context.DefaultState
 import com.vexillum.plugincore.language.context.LanguageState
 import com.vexillum.plugincore.language.message.Message
 import com.vexillum.plugincore.language.message.MessageBuilder
@@ -82,7 +83,9 @@ internal class SimpleCommand<Sender : LanguageAgent>(
             (lastArg.isNullOrEmpty() && parent == null) ||
             exception is ArgumentsNotDepletedException
         ) {
-            session.agent.commandException { usagesMessage(this) }
+            session.agent.commandException {
+                resolve { command.unknownUsage } + usagesMessage(this)
+            }
         }
         if (exception is CommandException) {
             // Show command exceptions
@@ -205,11 +208,11 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         }
     }
 
-    private fun usagesMessage(
-        languageState: LanguageState<Sender, PluginCoreLanguage>
+    override fun usagesMessage(
+        languageState: DefaultState<Sender>
     ): Message =
         with(languageState) {
-            val message = MessageBuilder(resolve { command.unknownUsage })
+            val message = MessageBuilder()
             for (usage in usages) {
                 message.appendLine(usage.usageMessage(this))
             }
@@ -264,17 +267,17 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         }
 
     override fun <A : LanguageAgent> A.commandMessage(
-        block: LanguageState<A, PluginCoreLanguage>.() -> Message
+        block: DefaultState<A>.() -> Message
     ) =
         sendMessage(prefixedErrorMessage(block))
 
     override fun <A : LanguageAgent> A.commandException(
-        block: LanguageState<A, PluginCoreLanguage>.() -> Message
+        block: DefaultState<A>.() -> Message
     ): Nothing =
         throw CommandException(prefixedErrorMessage(block))
 
     private fun <A : LanguageAgent> A.prefixedErrorMessage(
-        block: LanguageState<A, PluginCoreLanguage>.() -> Message
+        block: DefaultState<A>.() -> Message
     ): Message =
         languageState(pluginCore).run {
             prefixedMessage {

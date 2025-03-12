@@ -2,9 +2,8 @@ package com.vexillum.plugincore.command
 
 import com.vexillum.plugincore.command.session.CommandSession
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.context.LanguageState
+import com.vexillum.plugincore.language.context.DefaultState
 import com.vexillum.plugincore.language.message.Message
-import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
 
 typealias CommandName = String
 
@@ -20,14 +19,18 @@ interface Command<Sender : LanguageAgent> {
     fun execute(session: CommandSession<Sender>)
     fun autocomplete(session: CommandSession<Sender>): MutableList<String>
     fun <A : LanguageAgent> A.commandException(
-        block: LanguageState<A, PluginCoreLanguage>.() -> Message
+        block: DefaultState<A>.() -> Message
     ): Nothing
     fun <A : LanguageAgent> A.commandMessage(
-        block: LanguageState<A, PluginCoreLanguage>.() -> Message
+        block: DefaultState<A>.() -> Message
     )
+    fun usagesMessage(
+        languageState: DefaultState<Sender>
+    ): Message
 
     companion object {
         const val SLASH = "/"
-        const val DOUBLE_SLASH = "//"
+        const val DOUBLE_SLASH = "$SLASH$SLASH"
+        const val DEFAULT_HELP_LABEL = "help"
     }
 }

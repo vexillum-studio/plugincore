@@ -31,7 +31,10 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
 
     private val pattern = Pattern.compile("^${internalCommand.startToken}(?<label>\\w+)\\s?(?<captured>.*)\$")
 
-    private fun applyToSession(agent: A, block: Session<A>.() -> Session<A>): CommandSession<A> =
+    private fun applyToSession(
+        agent: A,
+        block: Session<A>.() -> Session<A>
+    ): CommandSession<A> =
         sessions.compute(agent) { _, value ->
             value?.block() ?: Session(agent).block()
         }!!
@@ -57,20 +60,38 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
     override fun execute(sender: CommandSender, label: String, args: Array<String>): Boolean {
         if (!internalCommand.matches(label)) return false
         val agent = agentFromSender(sender) ?: return false
-        val session = applyToSession(agent) { copy(args = args) }
+        val session = applyToSession(agent) {
+            copy(
+                command = internalCommand,
+                args = args
+            )
+        }
         try {
+            agent.currentCommandSession = session
             internalCommand.execute(session)
             return true
         } catch (e: CommandException) {
             agent.sendMessage(e.message)
             return false
+        } finally {
+            agent.currentCommandSession = null
         }
     }
 
     override fun tabComplete(sender: CommandSender, alias: String, args: Array<String>): MutableList<String> {
         val agent = agentFromSender(sender) ?: return mutableListOf()
-        val session = applyToSession(agent) { copy(args = args) }
-        return internalCommand.autocomplete(session)
+        try {
+            val session = applyToSession(agent) {
+                copy(
+                    command = internalCommand,
+                    args = args
+                )
+            }
+            agent.currentCommandSession = session
+            return internalCommand.autocomplete(session)
+        } finally {
+            agent.currentCommandSession = null
+        }
     }
 
     override fun getAliases(): MutableList<String> =

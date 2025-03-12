@@ -15,7 +15,7 @@ interface ArgumentExtractor<Sender : LanguageAgent, Type : Any> {
 
     val extractor: (CommandUser<Sender>, String) -> Type
 
-    val descriptor: (CommandUser<*>) -> Message
+    val descriptor: ((CommandUser<*>) -> Message)?
 
     val errorMessage: ((CommandUser<*>, value: String) -> Message)?
         get() = null

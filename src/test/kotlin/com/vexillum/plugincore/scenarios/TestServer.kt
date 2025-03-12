@@ -160,6 +160,7 @@ open class TestServer {
                 errorColor = messageOf("&c"),
                 errorAccent = messageOf("&4"),
                 command = CommandLanguage(
+                    helpMessage = messageOf("Help for command ", param("label"), ":"),
                     unknownUsage = messageOf("Unknown usage, instead use:"),
                     incorrectUsage = messageOf("Incorrect usage for argument ", param("argument"), ":"),
                     permissionMessage = messageOf("You don't have permission to execute that command"),

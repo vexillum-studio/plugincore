@@ -375,6 +375,7 @@ class SimpleCommandTests : TestServer() {
         capturedInput: String = args.joinToString(" ")
     ) =
         Session(
+            command = null,
             user = User(sender),
             capturedInput = capturedInput,
             args = args

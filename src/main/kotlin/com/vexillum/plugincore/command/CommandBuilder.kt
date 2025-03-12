@@ -2,12 +2,15 @@ package com.vexillum.plugincore.command
 
 import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.command.argument.Argument
+import com.vexillum.plugincore.command.session.CommandSession
+import com.vexillum.plugincore.extensions.PluginCoreExtensions
+import com.vexillum.plugincore.extensions.tryCastOrNull
 import com.vexillum.plugincore.language.LanguageAgent
 
 @Suppress("TooManyFunctions", "LongParameterList")
 class CommandBuilder<Sender : LanguageAgent> internal constructor(
-    private val pluginCore: PluginCore
-) {
+    override val pluginCore: PluginCore
+) : PluginCoreExtensions {
 
     var startToken: String = Command.SLASH
     lateinit var name: CommandName
@@ -91,6 +94,25 @@ class CommandBuilder<Sender : LanguageAgent> internal constructor(
     fun addSubCommand(block: CommandBuilder<Sender>.() -> Unit) {
         val command = CommandBuilder<Sender>(pluginCore).also(block).build()
         subCommands.add(command)
+    }
+
+    fun addHelpCommand(
+        label: String = Command.DEFAULT_HELP_LABEL
+    ) {
+        addSubCommand {
+            name = label
+            aliases = mutableSetOf("?")
+            addUsage { sender ->
+                val session = sender.currentCommandSession.tryCastOrNull<CommandSession<Sender>>()
+                    ?: error("No current session")
+                val sessionCommand = session.command
+                    ?: error("No current command")
+                sender.sendPrefixedMessage {
+                    sender.defaultState { resolve { command.helpMessage }.replace("label", sessionCommand.name) } +
+                        sessionCommand.usagesMessage(session)
+                }
+            }
+        }
     }
 
     internal fun build(): SimpleCommand<Sender> {

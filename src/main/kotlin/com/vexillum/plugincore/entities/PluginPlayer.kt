@@ -1,5 +1,6 @@
 package com.vexillum.plugincore.entities
 
+import com.vexillum.plugincore.command.session.CommandSession
 import com.vexillum.plugincore.language.LanguageAgent
 import com.vexillum.plugincore.language.LocalLanguage
 import com.vexillum.plugincore.launcher.entities.PluginCorePlayer
@@ -18,6 +19,8 @@ abstract class PluginPlayer internal constructor(
 
     final override val activeLanguage: LocalLanguage?
         get() = LocalLanguage.ofCode(player.locale)
+
+    override var currentCommandSession: CommandSession<*>? = null
 
     fun playSound(
         sound: Sound,

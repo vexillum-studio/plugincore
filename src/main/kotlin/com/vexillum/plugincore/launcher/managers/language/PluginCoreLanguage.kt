@@ -31,6 +31,7 @@ data class CommandDescriptor(
 )
 
 data class CommandLanguage(
+    val helpMessage: Message,
     val unknownUsage: Message,
     val incorrectUsage: Message,
     val permissionMessage: Message,
