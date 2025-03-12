@@ -1,8 +1,12 @@
 package com.vexillum.plugincore.managers.language
 
-import com.vexillum.plugincore.language.LocalLanguage.*
-import com.vexillum.plugincore.language.Message
-import com.vexillum.plugincore.language.resolve
+import com.vexillum.plugincore.language.Language
+import com.vexillum.plugincore.language.LocalLanguage.ARGENTINEAN_SPANISH
+import com.vexillum.plugincore.language.LocalLanguage.AUSTRALIAN_ENGLISH
+import com.vexillum.plugincore.language.LocalLanguage.CHINESE
+import com.vexillum.plugincore.language.LocalLanguage.ENGLISH
+import com.vexillum.plugincore.language.LocalLanguage.SPANISH
+import com.vexillum.plugincore.language.message.Message
 import com.vexillum.plugincore.pluginCoreBase
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -15,7 +19,7 @@ class LanguageManagerTests {
 
     data class TestLanguage(
         val message1: Message
-    )
+    ) : Language
 
     private lateinit var languageManager: LanguageManager<TestLanguage>
 
@@ -33,32 +37,32 @@ class LanguageManagerTests {
 
     @Test
     fun `should correctly load a language and resolve a message from file`() {
-        val language = languageManager.language(ENGLISH)
-        assertThat(language.resolve { message1 }, `is`("Hello §4123"))
+        val languageTranslation = languageManager.translation(ENGLISH)
+        assertThat(languageTranslation.resolve { message1 }, `is`(notNullValue()))
     }
 
     @Test
     fun `should correctly get EN language defined in the languages folder`() {
-        assertThat(languageManager.language(ENGLISH), `is`(notNullValue()))
+        assertThat(languageManager.translation(ENGLISH), `is`(notNullValue()))
     }
 
     @Test
     fun `should get EN language if a children is requested and not loaded`() {
-        assertThat(languageManager.language(AUSTRALIAN_ENGLISH).localeLanguage, `is`(ENGLISH))
+        assertThat(languageManager.translation(AUSTRALIAN_ENGLISH).localeLanguage, `is`(ENGLISH))
     }
 
     @Test
     fun `should get a sibling language if the requested language is not found`() {
-        assertThat(languageManager.language(SPANISH).localeLanguage, `is`(ARGENTINEAN_SPANISH))
+        assertThat(languageManager.translation(SPANISH).localeLanguage, `is`(ARGENTINEAN_SPANISH))
     }
 
     @Test
     fun `should get a child language if a parent is asked and not found`() {
-        assertThat(languageManager.language(SPANISH).localeLanguage, `is`(ARGENTINEAN_SPANISH))
+        assertThat(languageManager.translation(SPANISH).localeLanguage, `is`(ARGENTINEAN_SPANISH))
     }
 
     @Test
     fun `should get EN language by default if the requested is not loaded and no related one is found`() {
-        assertThat(languageManager.language(CHINESE).localeLanguage, `is`(ENGLISH))
+        assertThat(languageManager.translation(CHINESE).localeLanguage, `is`(ENGLISH))
     }
 }

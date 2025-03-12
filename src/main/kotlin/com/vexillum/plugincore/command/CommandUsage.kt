@@ -5,8 +5,8 @@ import com.vexillum.plugincore.command.session.CommandSession
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.command.session.ConsoleUser
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
-import com.vexillum.plugincore.language.buildMessage
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.buildMessage
 import com.vexillum.plugincore.util.Constants.SPACE
 
 interface CommandUsage<Sender : LanguageAgent> {
@@ -17,7 +17,7 @@ interface CommandUsage<Sender : LanguageAgent> {
 
     fun execute(session: CommandSession<Sender>): ExecutionContext<Sender>
 
-    fun describe(user: CommandUser<*>): LanguageMessage =
+    fun describe(user: CommandUser<*>): Message =
         buildMessage {
             arguments.joinMessage(separator = SPACE) {
                 describe(user)

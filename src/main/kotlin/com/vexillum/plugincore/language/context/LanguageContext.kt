@@ -5,13 +5,13 @@ import com.vexillum.plugincore.extensions.PluginCoreExtensions
 import com.vexillum.plugincore.language.Language
 import com.vexillum.plugincore.language.LanguageAgent
 import com.vexillum.plugincore.language.LanguageException
-import com.vexillum.plugincore.language.LanguageMessage
 import com.vexillum.plugincore.language.LocalLanguage
-import com.vexillum.plugincore.language.Message
+import com.vexillum.plugincore.language.LocaleTranslation
+import com.vexillum.plugincore.language.message.Message
 
-interface LanguageContext<T : Any> : PluginCoreExtensions {
+interface LanguageContext<T : Language> : PluginCoreExtensions {
 
-    fun language(localLanguage: LocalLanguage): Language<T>
+    fun translation(localLanguage: LocalLanguage): LocaleTranslation<T>
 
     fun <Agent : LanguageAgent> languageState(
         agent: Agent
@@ -19,20 +19,17 @@ interface LanguageContext<T : Any> : PluginCoreExtensions {
         agent.languageState(this)
 
     fun <Agent : LanguageAgent> Agent.resolve(
-        replacements: Map<String, Any> = emptyMap(),
         block: T.() -> Message
-    ): LanguageMessage =
-        languageState(this).resolve(replacements, block)
+    ): Message =
+        languageState(this).resolve(block)
 
     fun <Agent : LanguageAgent> Agent.sendMessage(
-        replacements: Map<String, Any> = emptyMap(),
         block: T.() -> Message
     ) =
-        sendMessage(resolve(replacements, block))
+        sendMessage(resolve(block))
 
     fun <Agent : LanguageAgent> Agent.languageException(
-        replacements: Map<String, Any> = emptyMap(),
         block: T.() -> Message
     ): Nothing =
-        throw LanguageException(resolve(replacements, block))
+        throw LanguageException(resolve(block))
 }

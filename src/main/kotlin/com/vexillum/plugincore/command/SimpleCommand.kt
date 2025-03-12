@@ -10,11 +10,11 @@ import com.vexillum.plugincore.command.suggestion.UsageSuggestion
 import com.vexillum.plugincore.extensions.PluginCoreExtensions
 import com.vexillum.plugincore.extensions.takeWhen
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
-import com.vexillum.plugincore.language.LanguageMessageBuilder
-import com.vexillum.plugincore.language.buildMessage
 import com.vexillum.plugincore.language.context.LanguageState
-import com.vexillum.plugincore.language.message
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.MessageBuilder
+import com.vexillum.plugincore.language.message.buildMessage
+import com.vexillum.plugincore.language.message.message
 import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
 import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
 import com.vexillum.plugincore.util.sortByLevenshtein
@@ -39,6 +39,7 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         }
     }
 
+    @Suppress("ComplexMethod")
     override fun execute(session: CommandSession<Sender>) {
         // Check for permission
         checkPermission(session)
@@ -144,7 +145,9 @@ internal class SimpleCommand<Sender : LanguageAgent>(
 
     private fun checkPermission(session: CommandSession<*>) {
         if (permission?.let { session.agent.hasPermission(it) } == false) {
-            session.agent.commandException { resolve { command.permissionMessage } }
+            session.agent.commandException {
+                resolve { command.permissionMessage }
+            }
         }
     }
 
@@ -157,12 +160,13 @@ internal class SimpleCommand<Sender : LanguageAgent>(
             }
         }
 
+    @Suppress("ComplexMethod")
     private fun autocompleteUsages(
         session: CommandSession<Sender>,
         autocompletes: MutableList<CommandSuggestion<Sender>>
     ) {
         val args = session.args
-        val extractorsWithError = mutableListOf<LanguageMessage>()
+        val extractorsWithError = mutableListOf<Message>()
         for (usage in usages) {
             val arguments = usage.arguments
             val totalSlots = arguments.sumOf { it.slots }
@@ -203,9 +207,9 @@ internal class SimpleCommand<Sender : LanguageAgent>(
 
     private fun usagesMessage(
         languageState: LanguageState<Sender, PluginCoreLanguage>
-    ): LanguageMessage =
+    ): Message =
         with(languageState) {
-            val message = LanguageMessageBuilder(resolve { command.unknownUsage })
+            val message = MessageBuilder(resolve { command.unknownUsage })
             for (usage in usages) {
                 message.appendLine(usage.usageMessage(this))
             }
@@ -214,7 +218,7 @@ internal class SimpleCommand<Sender : LanguageAgent>(
 
     private fun CommandUsage<Sender>.usageMessage(
         languageState: LanguageState<Sender, PluginCoreLanguage>
-    ): LanguageMessage =
+    ): Message =
         with(languageState) {
             resolve { errorColor } + message("$startToken$name ") + describe(User(languageState))
         }
@@ -223,13 +227,14 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         session: CommandSession<Sender>,
         exception: ArgumentExtractException,
         context: ExecutionContext<Sender>
-    ): LanguageMessage =
+    ): Message =
         with(session) {
             buildMessage {
                 append(
-                    resolve(mapOf("argument" to exception.descriptor)) {
-                        command.incorrectUsage
-                    }
+                    resolve { command.incorrectUsage }.replace(
+                        "argument",
+                        exception.descriptor
+                    )
                 )
                 mark()
                 appendLine("$startToken$name")
@@ -259,18 +264,18 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         }
 
     override fun <A : LanguageAgent> A.commandMessage(
-        block: LanguageState<A, PluginCoreLanguage>.() -> LanguageMessage
+        block: LanguageState<A, PluginCoreLanguage>.() -> Message
     ) =
         sendMessage(prefixedErrorMessage(block))
 
     override fun <A : LanguageAgent> A.commandException(
-        block: LanguageState<A, PluginCoreLanguage>.() -> LanguageMessage
+        block: LanguageState<A, PluginCoreLanguage>.() -> Message
     ): Nothing =
         throw CommandException(prefixedErrorMessage(block))
 
     private fun <A : LanguageAgent> A.prefixedErrorMessage(
-        block: LanguageState<A, PluginCoreLanguage>.() -> LanguageMessage
-    ): LanguageMessage =
+        block: LanguageState<A, PluginCoreLanguage>.() -> Message
+    ): Message =
         languageState(pluginCore).run {
             prefixedMessage {
                 resolve { errorColor } + block()

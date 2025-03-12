@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.MessageList
 import com.vexillum.plugincore.language.node.LanguageArray
 import com.vexillum.plugincore.language.node.LanguageContainer
 import com.vexillum.plugincore.language.node.LanguageIdentity

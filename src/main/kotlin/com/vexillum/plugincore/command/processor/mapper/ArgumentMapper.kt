@@ -5,19 +5,18 @@ import com.vexillum.plugincore.command.CommandException
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
+import com.vexillum.plugincore.language.message.Message
 
 interface ArgumentMapper<Sender : LanguageAgent, BaseType : Any, Type : Any> : ArgumentProcessor<Sender, BaseType, Type> {
 
     val clazz: Class<Type>
 
-    val errorMessage: ((CommandUser<*>, BaseType) -> LanguageMessage)?
+    val errorMessage: ((CommandUser<*>, BaseType) -> Message)?
         get() = { user, value ->
-            val replacements = mapOf(
+            user.resolve { command.transformMessage }.replacing(
                 "value" to value,
                 "type" to clazz.simpleName
             )
-            user.resolve(replacements) { command.transformMessage }
         }
 
     override fun process(user: CommandUser<Sender>, value: BaseType): Type =

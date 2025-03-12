@@ -3,8 +3,8 @@ package com.vexillum.plugincore
 import com.vexillum.plugincore.extensions.loadResourceAsString
 import com.vexillum.plugincore.extensions.registerEvents
 import com.vexillum.plugincore.extensions.runOnNextTick
-import com.vexillum.plugincore.language.Language
 import com.vexillum.plugincore.language.LocalLanguage
+import com.vexillum.plugincore.language.LocaleTranslation
 import com.vexillum.plugincore.language.context.LanguageContext
 import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
 import com.vexillum.plugincore.managers.ManagerFactory
@@ -46,8 +46,8 @@ abstract class PluginCoreBase : PluginCore, DefaultLanguageResolver, Listener {
     override val defaultLanguageContext: LanguageContext<PluginCoreLanguage> by
     DefaultLanguageResolverImpl(managerFactory)
 
-    final override fun language(localLanguage: LocalLanguage): Language<PluginCoreLanguage> =
-        defaultLanguageContext.language(localLanguage)
+    final override fun translation(localLanguage: LocalLanguage): LocaleTranslation<PluginCoreLanguage> =
+        defaultLanguageContext.translation(localLanguage)
 }
 
 abstract class PluginCoreBoot(

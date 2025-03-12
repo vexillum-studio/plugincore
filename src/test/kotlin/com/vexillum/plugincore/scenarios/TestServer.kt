@@ -1,9 +1,10 @@
 package com.vexillum.plugincore.scenarios
 
 import com.vexillum.plugincore.entities.PluginPlayer
-import com.vexillum.plugincore.language.Language
 import com.vexillum.plugincore.language.LocalLanguage.ENGLISH
+import com.vexillum.plugincore.language.LocaleTranslation
 import com.vexillum.plugincore.language.context.State
+import com.vexillum.plugincore.language.message.messageFactory
 import com.vexillum.plugincore.launcher.PluginCoreLauncher
 import com.vexillum.plugincore.launcher.entities.PluginCorePlayer
 import com.vexillum.plugincore.launcher.managers.config.LogConfig
@@ -15,10 +16,7 @@ import com.vexillum.plugincore.launcher.managers.language.CommandValidation
 import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
 import com.vexillum.plugincore.launcher.player.PluginCorePlayerManager
 import com.vexillum.plugincore.managers.config.ConfigManager
-import com.vexillum.plugincore.managers.language.MessageHelper
 import com.vexillum.plugincore.pluginCoreBase
-import java.util.Locale
-import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.GameMode.CREATIVE
 import org.bukkit.GameMode.SURVIVAL
@@ -27,19 +25,21 @@ import org.bukkit.World
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.MockedStatic
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mockStatic
-import org.mockito.Mockito.`when`
 import org.mockito.kotlin.KStubbing
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
+import java.util.Locale
+import java.util.UUID
 
 @Suppress("LongMethod")
-open class TestServer : MessageHelper {
+open class TestServer {
 
     private val mockedPlayers = mutableMapOf<UUID, PluginCorePlayer>()
     private val mockedWorlds = mutableMapOf<String, World>()
@@ -142,7 +142,9 @@ open class TestServer : MessageHelper {
             on { uniqueId } doReturn uuid
             on { locale } doReturn Locale.ENGLISH.toString()
             on { localLanguage } doReturn ENGLISH
-            on { languageState(pluginCoreLauncher) } doAnswer { State(agent, pluginCoreLauncher.language(ENGLISH)) }
+            on { languageState(pluginCoreLauncher) } doAnswer {
+                State(agent, pluginCoreLauncher.translation(ENGLISH).value)
+            }
             stubbing.invoke(this)
         }
 
@@ -151,68 +153,75 @@ open class TestServer : MessageHelper {
     }
 
     private fun mockLauncher() {
-        val pluginCoreLanguage = PluginCoreLanguage(
-            prefix = message("[", param("pluginName"), "]: "),
-            color = message("&7"),
-            errorColor = message("&c"),
-            errorAccent = message("&4"),
-            command = CommandLanguage(
-                unknownUsage = message("Unknown usage, instead use:"),
-                incorrectUsage = message("Incorrect usage for argument ", param("argument"), ":"),
-                permissionMessage = message("You don't have permission to execute that command"),
-                transformMessage = message("You can't transform '", param("value"), "' to '", param("to"), "'"),
-                parsing = CommandParsing(
-                    boolean = message("'", param("value"), "' can't be parsed as a boolean value"),
-                    integer = message("'", param("value"), "' can't be parsed as an integer value"),
-                    double = message("'", param("value"), "' can't be parsed as a numeric value"),
-                    enum = message("'", param("value"), "' must be one of the next values: ", param("possibleValues")),
-                    player = message("Player '", param("name"), "' was not found"),
-                    world = message("The world '", param("value"), "' was not found"),
-                    vector = message(
-                        "Invalid definition, use valid numbers for: <",
-                        param("x"),
-                        "> <",
-                        param("y"),
-                        "> <",
-                        param("z"),
-                        ">"
+        val pluginCoreLanguage = messageFactory {
+            PluginCoreLanguage(
+                prefix = messageOf("[", param("pluginName"), "]: "),
+                color = messageOf("&7"),
+                errorColor = messageOf("&c"),
+                errorAccent = messageOf("&4"),
+                command = CommandLanguage(
+                    unknownUsage = messageOf("Unknown usage, instead use:"),
+                    incorrectUsage = messageOf("Incorrect usage for argument ", param("argument"), ":"),
+                    permissionMessage = messageOf("You don't have permission to execute that command"),
+                    transformMessage = messageOf("You can't transform '", param("value"), "' to '", param("to"), "'"),
+                    parsing = CommandParsing(
+                        boolean = messageOf("'", param("value"), "' can't be parsed as a boolean value"),
+                        integer = messageOf("'", param("value"), "' can't be parsed as an integer value"),
+                        double = messageOf("'", param("value"), "' can't be parsed as a numeric value"),
+                        enum = messageOf(
+                            "'",
+                            param("value"),
+                            "' must be one of the next values: ",
+                            param("possibleValues")
+                        ),
+                        player = messageOf("Player '", param("name"), "' was not found"),
+                        world = messageOf("The world '", param("value"), "' was not found"),
+                        vector = messageOf(
+                            "Invalid definition, use valid numbers for: <",
+                            param("x"),
+                            "> <",
+                            param("y"),
+                            "> <",
+                            param("z"),
+                            ">"
+                        ),
+                        location = messageOf(
+                            "Invalid location, use: <",
+                            param("x"),
+                            "> <",
+                            param("y"),
+                            "> <",
+                            param("z"),
+                            ">"
+                        )
                     ),
-                    location = message(
-                        "Invalid location, use: <",
-                        param("x"),
-                        "> <",
-                        param("y"),
-                        "> <",
-                        param("z"),
-                        ">"
+                    validation = CommandValidation(
+                        numberRange = messageOf(
+                            "The value ",
+                            param("value"),
+                            " must be between ",
+                            param("min"),
+                            " and ",
+                            param("max")
+                        )
+                    ),
+                    descriptor = CommandDescriptor(
+                        color = messageOf("&7"),
+                        accent = messageOf("&c"),
+                        prefix = messageOf("&c<"),
+                        postfix = messageOf("&c>"),
+                        marker = messageOf("└▶"),
+                        world = messageOf("world"),
+                        x = messageOf("x"),
+                        y = messageOf("y"),
+                        z = messageOf("z")
                     )
-                ),
-                validation = CommandValidation(
-                    numberRange = message(
-                        "The value ",
-                        param("value"),
-                        " must be between ",
-                        param("min"),
-                        " and ",
-                        param("max")
-                    )
-                ),
-                descriptor = CommandDescriptor(
-                    color = message("&7"),
-                    accent = message("&c"),
-                    prefix = message("&c<"),
-                    postfix = message("&c>"),
-                    marker = message("└▶"),
-                    world = message("world"),
-                    x = message("x"),
-                    y = message("y"),
-                    z = message("z")
                 )
             )
-        )
+        }
 
-        val language = mock<Language<PluginCoreLanguage>> {
-            on { language } doReturn pluginCoreLanguage
+        val localeTranslation = mock<LocaleTranslation<PluginCoreLanguage>> {
+            on { value } doReturn pluginCoreLanguage
         }
 
         val configManager = mock<ConfigManager<PluginCoreConfig>> {
@@ -234,7 +243,7 @@ open class TestServer : MessageHelper {
         }
 
         doReturn(configManager).whenever(pluginCoreLauncher).configManager
-        doReturn(language).whenever(pluginCoreLauncher).language(ENGLISH)
+        doReturn(localeTranslation).whenever(pluginCoreLauncher).translation(ENGLISH)
         doReturn(playerManager).whenever(pluginCoreLauncher).playerManager
 
         PluginCoreLauncher.pluginCoreInstance = pluginCoreLauncher

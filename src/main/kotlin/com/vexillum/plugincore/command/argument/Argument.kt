@@ -5,8 +5,8 @@ import com.vexillum.plugincore.command.extractor.ArgumentExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
-import com.vexillum.plugincore.language.buildMessage
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.buildMessage
 import com.vexillum.plugincore.util.Constants.SPACE
 
 interface Argument<Sender : LanguageAgent, Type : Any> {
@@ -19,7 +19,7 @@ interface Argument<Sender : LanguageAgent, Type : Any> {
 
     fun get(context: ExecutionContext<Sender>): Type
 
-    fun describe(user: CommandUser<*>): LanguageMessage =
+    fun describe(user: CommandUser<*>): Message =
         buildMessage {
             extractors.joinMessage(SPACE) { describe(user) }
         }

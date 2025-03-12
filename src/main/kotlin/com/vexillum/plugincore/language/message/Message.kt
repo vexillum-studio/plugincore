@@ -1,4 +1,4 @@
-package com.vexillum.plugincore.language
+package com.vexillum.plugincore.language.message
 
 import com.vexillum.plugincore.extensions.combineEdges
 import com.vexillum.plugincore.extensions.plus
@@ -12,29 +12,61 @@ interface Message {
 
     val raw: String
     val size: Int get() = 1
+    val strippedLength get() = stripped().length
 
-    fun resolve(replacements: Map<String, Any>): LanguageMessage =
-        message(this, replacements)
+    fun resolved(): String = raw.postProcess()
+
+    fun stripped(): String =
+        ChatColor.stripColor(resolved()) ?: resolved()
 
     fun resolveString(replacements: Map<String, Any> = emptyMap()): String
 
     fun repeat(times: Int): Message =
-        CompoundMessage(Array(times) { this })
+        if (times > 0) {
+            CompoundMessage(Array(times) { this })
+        } else {
+            this
+        }
 
     fun mutate(block: (Message) -> Message?): Message =
         block(this) ?: this
 
     operator fun plus(message: Message?): Message =
-        if (message == null || message.raw.isEmpty())
+        if (message == null || message.raw.isEmpty()) {
             this
-        else if (message is CompoundMessage) {
+        } else if (message is MessageWithReplacements) {
+            message.plus(this)
+        } else if (message is CompoundMessage) {
             val merged = this + message.messages.first()
-            if (merged is CompoundMessage)
+            if (merged is CompoundMessage) {
                 CompoundMessage(this.plus(message.messages))
-            else
+            } else {
                 CompoundMessage(message.messages.replaceFirst(merged))
-        } else
+            }
+        } else {
             CompoundMessage(arrayOf(this, message))
+        }
+
+    operator fun invoke(): String =
+        resolved()
+
+    fun replace(key: String, value: Any): Message {
+        val messageReplacements = messageReplacements()
+        messageReplacements.replace(key, value)
+        return message(this, messageReplacements)
+    }
+
+    fun replacing(vararg replacements: Pair<String, Any>): Message {
+        val messageReplacements = messageReplacements()
+        messageReplacements.replace(*replacements)
+        return message(this, messageReplacements)
+    }
+
+    fun replacingWith(replacements: Map<String, Any>): Message {
+        val messageReplacements = messageReplacements()
+        messageReplacements.replaceAll(replacements)
+        return message(this, messageReplacements)
+    }
 
     fun String.postProcess() =
         ChatColor.translateAlternateColorCodes(COLOR_CHAR, this)
@@ -49,7 +81,7 @@ internal object StartBlock : Message {
     override val size = 0
 
     override fun resolveString(replacements: Map<String, Any>) =
-        throw IllegalStateException()
+        error("StartBlock can't be resolved")
 
     override fun repeat(times: Int): Message =
         this
@@ -82,7 +114,11 @@ open class CompoundMessage internal constructor(
         }
 
     override fun repeat(times: Int): Message =
-        CompoundMessage(messages.repeat(times))
+        if (times > 0) {
+            CompoundMessage(messages.repeat(times))
+        } else {
+            this
+        }
 
     override fun mutate(block: (Message) -> Message?): Message =
         CompoundMessage(messages.map { it.mutate(block) }.toTypedArray())
@@ -93,35 +129,37 @@ open class CompoundMessage internal constructor(
             is StartBlock -> this
             is CompoundMessage -> {
                 val merged = messages.last() + message.messages.first()
-                if (merged is CompoundMessage)
+                if (merged is CompoundMessage) {
                     CompoundMessage(messages + message.messages)
-                else
+                } else {
                     CompoundMessage(messages.combineEdges(message.messages, merged))
+                }
             }
 
             else ->
-                if (message.raw.isEmpty()) this
-                else {
+                if (message.raw.isEmpty()) {
+                    this
+                } else {
                     val merged = messages.last() + message
-                    if (merged is CompoundMessage)
+                    if (merged is CompoundMessage) {
                         CompoundMessage(messages + message)
-                    else
+                    } else {
                         CompoundMessage(messages.replaceLast(merged))
+                    }
                 }
         }
 
     override fun toString(): String = raw
 
-    override fun equals(other: Any?): Boolean {
-        if (other !is CompoundMessage) return false
-        return other.messages.contentEquals(messages)
-    }
+    override fun equals(other: Any?): Boolean =
+        if (other is String) resolved() == other
+        else (other as? CompoundMessage)?.resolved() == resolved()
 
     override fun hashCode(): Int =
         messages.hashCode()
 }
 
-class MessageList(
+class MessageList internal constructor(
     private val internalMessages: List<Message>
 ) : CompoundMessage(internalMessages.toTypedArray()), List<Message> by internalMessages {
 
@@ -143,10 +181,9 @@ class MessageList(
 
     override fun toString() = raw
 
-    override fun equals(other: Any?): Boolean {
-        if (other !is MessageList) return false
-        return internalMessages == other.internalMessages
-    }
+    override fun equals(other: Any?): Boolean =
+        if (other is String) resolved() == other
+        else (other as? MessageList)?.resolved() == resolved()
 
     override fun hashCode(): Int =
         internalMessages.hashCode()
@@ -155,14 +192,14 @@ class MessageList(
         get() = internalMessages.size
 }
 
-internal data class MessageBlock(val block: String) : Message {
+data class MessageBlock internal constructor(val block: String) : Message {
 
     override val raw = block
 
     override fun resolveString(replacements: Map<String, Any>) = block.postProcess()
 
     override fun repeat(times: Int): MessageBlock =
-        MessageBlock(block.repeat(times))
+        if (times > 0) MessageBlock(block.repeat(times)) else this
 
     override operator fun plus(message: Message?): Message =
         if (message != null && block.isEmpty())
@@ -174,16 +211,15 @@ internal data class MessageBlock(val block: String) : Message {
 
     override fun toString() = block
 
-    override fun equals(other: Any?): Boolean {
-        if (other !is MessageBlock) return false
-        return block == other.block
-    }
+    override fun equals(other: Any?): Boolean =
+        if (other is String) resolved() == other
+        else (other as? MessageBlock)?.block == block
 
     override fun hashCode(): Int =
         block.hashCode()
 }
 
-internal data class ParameterBlock(private val enclosed: String) : Message {
+data class ParameterBlock internal constructor(private val enclosed: String) : Message {
 
     override val raw = enclosed
 
@@ -194,16 +230,15 @@ internal data class ParameterBlock(private val enclosed: String) : Message {
 
     override fun toString(): String = enclosed
 
-    override fun equals(other: Any?): Boolean {
-        if (other !is ParameterBlock) return false
-        return enclosed == other.enclosed
-    }
+    override fun equals(other: Any?): Boolean =
+        if (other is String) resolved() == other
+        else (other as? ParameterBlock)?.enclosed == enclosed
 
     override fun hashCode(): Int =
         enclosed.hashCode()
 }
 
-internal data class ReplacedBlock(
+data class ReplacedBlock internal constructor(
     private val key: String,
     private val replaced: String
 ) : Message {
@@ -215,10 +250,9 @@ internal data class ReplacedBlock(
 
     override fun toString(): String = raw
 
-    override fun equals(other: Any?): Boolean {
-        if (other !is ReplacedBlock) return false
-        return key == other.key && replaced == other.replaced
-    }
+    override fun equals(other: Any?): Boolean =
+        if (other is String) resolved() == other
+        else (other as? ReplacedBlock)?.replaced == replaced
 
     override fun hashCode(): Int =
         key.hashCode()

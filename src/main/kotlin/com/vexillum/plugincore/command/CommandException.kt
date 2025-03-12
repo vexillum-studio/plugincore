@@ -1,16 +1,16 @@
 package com.vexillum.plugincore.command
 
 import com.vexillum.plugincore.language.LanguageException
-import com.vexillum.plugincore.language.LanguageMessage
-import com.vexillum.plugincore.language.message
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.message
 
-open class CommandException(message: LanguageMessage) : LanguageException(message) {
+open class CommandException(message: Message) : LanguageException(message) {
     constructor(message: String) : this(message(message))
 }
 
 internal class ArgumentExtractException(
-    message: LanguageMessage,
-    val descriptor: LanguageMessage
+    message: Message,
+    val descriptor: Message
 ) : CommandException(message)
 
 internal class ArgumentMapException(

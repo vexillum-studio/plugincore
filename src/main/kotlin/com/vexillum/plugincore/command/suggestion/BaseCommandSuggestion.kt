@@ -3,10 +3,10 @@ package com.vexillum.plugincore.command.suggestion
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.command.session.ConsoleUser
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
+import com.vexillum.plugincore.language.message.Message
 
 abstract class BaseCommandSuggestion<Sender : LanguageAgent>(
-    val message: LanguageMessage
+    val message: Message
 ) : CommandSuggestion<Sender> {
 
     override val value = message.resolved()
@@ -18,7 +18,7 @@ abstract class BaseCommandSuggestion<Sender : LanguageAgent>(
         return priorityComparison
     }
 
-    override fun describe(user: CommandUser<*>): LanguageMessage =
+    override fun describe(user: CommandUser<*>): Message =
         message
 
     override fun toString() = describe(ConsoleUser).stripped()

@@ -1,8 +1,8 @@
 package com.vexillum.plugincore.language.node
 
 import com.fasterxml.jackson.annotation.JsonValue
-import com.vexillum.plugincore.language.Message
-import com.vexillum.plugincore.language.MessageList
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.MessageList
 
 internal class LanguageArray(
     override val parent: LanguageContainer,

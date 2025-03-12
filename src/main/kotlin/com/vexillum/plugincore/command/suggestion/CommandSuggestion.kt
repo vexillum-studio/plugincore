@@ -2,11 +2,11 @@ package com.vexillum.plugincore.command.suggestion
 
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
+import com.vexillum.plugincore.language.message.Message
 
 interface CommandSuggestion<Sender : LanguageAgent> : Comparable<CommandSuggestion<Sender>> {
     val value: String
     val priority: Int
     val matchable: Boolean
-    fun describe(user: CommandUser<*>): LanguageMessage
+    fun describe(user: CommandUser<*>): Message
 }

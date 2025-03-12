@@ -4,11 +4,11 @@ import com.vexillum.plugincore.command.extractor.IntExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
-import com.vexillum.plugincore.language.message
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.message
 
 open class IntArgument<Sender : LanguageAgent>(
-    descriptor: (CommandUser<*>) -> LanguageMessage,
+    descriptor: (CommandUser<*>) -> Message,
     override val processor: ArgumentProcessor<Sender, Int, Int>? = null
 ) : Argument1<Sender, Int>() {
 
@@ -18,9 +18,9 @@ open class IntArgument<Sender : LanguageAgent>(
     ) : this(message(descriptor), processor)
 
     constructor(
-        languageMessage: LanguageMessage,
+        message: Message,
         processor: ArgumentProcessor<Sender, Int, Int>? = null
-    ) : this({ languageMessage }, processor)
+    ) : this({ message }, processor)
 
     override val extractor = IntExtractor<Sender>(descriptor)
 }

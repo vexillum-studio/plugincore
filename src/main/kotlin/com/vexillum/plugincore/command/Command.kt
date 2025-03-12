@@ -2,8 +2,8 @@ package com.vexillum.plugincore.command
 
 import com.vexillum.plugincore.command.session.CommandSession
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
 import com.vexillum.plugincore.language.context.LanguageState
+import com.vexillum.plugincore.language.message.Message
 import com.vexillum.plugincore.launcher.managers.language.PluginCoreLanguage
 
 typealias CommandName = String
@@ -20,10 +20,10 @@ interface Command<Sender : LanguageAgent> {
     fun execute(session: CommandSession<Sender>)
     fun autocomplete(session: CommandSession<Sender>): MutableList<String>
     fun <A : LanguageAgent> A.commandException(
-        block: LanguageState<A, PluginCoreLanguage>.() -> LanguageMessage
+        block: LanguageState<A, PluginCoreLanguage>.() -> Message
     ): Nothing
     fun <A : LanguageAgent> A.commandMessage(
-        block: LanguageState<A, PluginCoreLanguage>.() -> LanguageMessage
+        block: LanguageState<A, PluginCoreLanguage>.() -> Message
     )
 
     companion object {

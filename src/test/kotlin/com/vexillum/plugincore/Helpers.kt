@@ -9,6 +9,7 @@ import com.vexillum.plugincore.language.LanguageAgent
 import com.vexillum.plugincore.language.LanguageException
 import com.vexillum.plugincore.language.LocalLanguage
 import com.vexillum.plugincore.language.LocalLanguage.ENGLISH
+import com.vexillum.plugincore.language.LocaleTranslation
 import com.vexillum.plugincore.managers.ManagerFactory
 import org.bukkit.plugin.java.JavaPlugin
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -56,11 +57,11 @@ internal fun <Sender : LanguageAgent> commandOf(
         subCommands = subCommands
     )
 
-inline fun <reified T : Any> languageFromJson(
+inline fun <reified T : Language> languageFromJson(
     languageJson: String,
     localLanguage: LocalLanguage = ENGLISH
 ) =
-    Language.create(
+    LocaleTranslation.create(
         localLanguage,
         languageJson.byteInputStream(),
         T::class

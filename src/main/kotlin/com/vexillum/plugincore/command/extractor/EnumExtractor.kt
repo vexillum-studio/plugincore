@@ -3,13 +3,13 @@ package com.vexillum.plugincore.command.extractor
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.command.suggestion.Suggestion
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
-import com.vexillum.plugincore.language.message
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.message
 import kotlin.reflect.KClass
 
 open class EnumExtractor<Sender : LanguageAgent, T : Enum<T>>(
     enumClass: KClass<T>,
-    override val descriptor: (CommandUser<*>) -> LanguageMessage,
+    override val descriptor: (CommandUser<*>) -> Message,
     private val ignoreCase: Boolean = true
 ) : BaseArgumentExtractor<Sender, T>() {
 
@@ -26,16 +26,14 @@ open class EnumExtractor<Sender : LanguageAgent, T : Enum<T>>(
         valuesFromName.getValue(enumName)
     }
 
-    override fun defaultDescriptor(user: CommandUser<*>): LanguageMessage =
+    override fun defaultDescriptor(user: CommandUser<*>): Message =
         descriptor(user)
 
-    override fun defaultErrorMessage(user: CommandUser<*>, value: String): LanguageMessage {
-        val replacements = mapOf(
+    override fun defaultErrorMessage(user: CommandUser<*>, value: String): Message =
+        user.resolve { command.parsing.enum }.replacing(
             "value" to value,
             "possibleValues" to valuesFromName.keys.joinToString()
         )
-        return user.resolve(replacements) { command.parsing.enum }
-    }
 
     override fun autocomplete(sender: Sender, value: String) =
         valueNames.map { Suggestion<Sender>(it) }

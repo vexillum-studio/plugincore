@@ -4,13 +4,13 @@ import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.command.suggestion.Suggestion
 import com.vexillum.plugincore.entities.PluginPlayer
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
-import com.vexillum.plugincore.language.message
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.message
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 
 open class PluginPlayerExtractor<Sender : LanguageAgent, P : PluginPlayer>(
-    override val descriptor: (CommandUser<*>) -> LanguageMessage,
+    override val descriptor: (CommandUser<*>) -> Message,
     val block: (Player) -> P?
 ) : BaseArgumentExtractor<Sender, P>() {
 
@@ -18,11 +18,11 @@ open class PluginPlayerExtractor<Sender : LanguageAgent, P : PluginPlayer>(
         block(Bukkit.getPlayer(name)!!)!!
     }
 
-    override fun defaultDescriptor(user: CommandUser<*>): LanguageMessage =
+    override fun defaultDescriptor(user: CommandUser<*>): Message =
         descriptor(user)
 
-    override fun defaultErrorMessage(user: CommandUser<*>, value: String): LanguageMessage =
-        user.resolve(mapOf("name" to value)) { command.parsing.player }
+    override fun defaultErrorMessage(user: CommandUser<*>, value: String): Message =
+        user.resolve { command.parsing.player }.replace("name", value)
 
     override fun autocomplete(sender: Sender, value: String) =
         Bukkit

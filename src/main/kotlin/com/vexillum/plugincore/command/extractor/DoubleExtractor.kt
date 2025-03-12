@@ -2,10 +2,10 @@ package com.vexillum.plugincore.command.extractor
 
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
+import com.vexillum.plugincore.language.message.Message
 
 open class DoubleExtractor<Sender : LanguageAgent>(
-    override val descriptor: (CommandUser<*>) -> LanguageMessage
+    override val descriptor: (CommandUser<*>) -> Message
 ) : BaseArgumentExtractor<Sender, Double>() {
 
     override fun matchingScore(sender: Sender, value: String): Double =
@@ -15,9 +15,9 @@ open class DoubleExtractor<Sender : LanguageAgent>(
         value.toDouble()
     }
 
-    override fun defaultDescriptor(user: CommandUser<*>): LanguageMessage =
+    override fun defaultDescriptor(user: CommandUser<*>): Message =
         descriptor(user)
 
-    override fun defaultErrorMessage(user: CommandUser<*>, value: String): LanguageMessage =
-        user.resolve(mapOf("value" to value)) { command.parsing.double }
+    override fun defaultErrorMessage(user: CommandUser<*>, value: String): Message =
+        user.resolve { command.parsing.double }.replace("value", value)
 }

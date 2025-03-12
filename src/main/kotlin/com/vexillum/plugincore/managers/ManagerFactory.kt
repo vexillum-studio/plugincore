@@ -1,6 +1,7 @@
 package com.vexillum.plugincore.managers
 
 import com.vexillum.plugincore.PluginCore
+import com.vexillum.plugincore.language.Language
 import com.vexillum.plugincore.managers.command.CommandManager
 import com.vexillum.plugincore.managers.config.ConfigManager
 import com.vexillum.plugincore.managers.language.LanguageManager
@@ -59,7 +60,7 @@ class ManagerFactory(
             }
         }
 
-    fun <T : Any> newLanguageManager(
+    fun <T : Language> newLanguageManager(
         languageClass: KClass<T>,
         originFolderPath: String = "",
         destinationFolderPath: String = ""
@@ -83,11 +84,11 @@ class ManagerFactory(
     inline fun <reified T : Any> config() =
         config(T::class)
 
-    fun <T : Any> language(languageClass: KClass<T>): LanguageManager<T> =
+    fun <T : Language> language(languageClass: KClass<T>): LanguageManager<T> =
         languageManagers[languageClass] as? LanguageManager<T>
             ?: error("No LanguageManager registered for $languageClass")
 
-    inline fun <reified T : Any> language() =
+    inline fun <reified T : Language> language() =
         language(T::class)
 
     fun commandManager() =

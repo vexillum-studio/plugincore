@@ -5,23 +5,24 @@ import com.vexillum.plugincore.command.argument.EnumArgument
 import com.vexillum.plugincore.command.argument.LocationArgument
 import com.vexillum.plugincore.command.argument.PlayerArgument
 import com.vexillum.plugincore.command.argument.SenderLocationArgument
-import com.vexillum.plugincore.language.Message
-import com.vexillum.plugincore.language.message
+import com.vexillum.plugincore.language.Language
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.message
 import org.bukkit.Material
 
 internal data class PluginCoreCommands(
     val reload: PluginCoreReload
-)
+) : Language
 
 internal data class PluginCoreReload(
     val start: Message,
     val success: Message
 )
 
+@Suppress("LongMethod")
 internal fun registerCommands(
     pluginCore: PluginCore
 ) {
-
     val managerFactory = pluginCore.managerFactory
     val commandManager = pluginCore.commandManager
 

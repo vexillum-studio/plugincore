@@ -1,9 +1,11 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.vexillum.plugincore.managers.language
 
 import com.vexillum.plugincore.language.Language
-import com.vexillum.plugincore.language.Message
-import com.vexillum.plugincore.language.MessageList
-import com.vexillum.plugincore.language.resolve
+import com.vexillum.plugincore.language.LocaleTranslation
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.MessageList
 import com.vexillum.plugincore.languageFromJson
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -21,7 +23,7 @@ class LanguageTests {
         val key6: KeySix,
         val key7: MessageList,
         val key8: Message,
-    )
+    ) : Language
 
     data class KeySix(
         val nested: Message,
@@ -34,7 +36,7 @@ class LanguageTests {
         val newObject: Message
     )
 
-    private lateinit var language: Language<ExampleLanguage>
+    private lateinit var localeTranslation: LocaleTranslation<ExampleLanguage>
 
     @BeforeEach
     fun setUp() {
@@ -74,7 +76,7 @@ class LanguageTests {
                 }
             }
         """.trimIndent()
-        language = languageFromJson(exampleLanguageJson)
+        localeTranslation = languageFromJson(exampleLanguageJson)
     }
 
     @Test
@@ -84,10 +86,7 @@ class LanguageTests {
 
     @Test
     fun `should resolve simple replacements`() {
-        assertResolve(
-            "Hello World!",
-            mapOf("replacement" to "World!")
-        ) { key2 }
+        assertResolve("Hello World!") { key2.replace("replacement", "World!") }
     }
 
     @Test
@@ -97,10 +96,9 @@ class LanguageTests {
 
     @Test
     fun `should resolve nested message replacements with replace map`() {
-        assertResolve(
-            "-Hello there\n-General Kenobi",
-            mapOf("generalName" to "Kenobi")
-        ) { key4 }
+        assertResolve("-Hello there\n-General Kenobi") {
+            key4.replace("generalName", "Kenobi")
+        }
     }
 
     @Test
@@ -124,9 +122,7 @@ class LanguageTests {
 
     @Test
     fun `should resolve various messages without replacements`() {
-        assertResolve("§1Hello nestedValue 7.6 §1A chest is located at x {x} y {y} z {z} 7.6 ") {
-            key8
-        }
+        assertResolve("§1Hello nestedValue 7.6 §1A chest is located at x {x} y {y} z {z} 7.6 ") { key8 }
     }
 
     @Test
@@ -137,22 +133,20 @@ class LanguageTests {
 
     @Test
     fun `should resolve and strip color from messages`() {
-        assertThat(language.resolve { key1 }.stripped(), `is`("Hello"))
+        assertThat(localeTranslation.resolve { key1 }.stripped(), `is`("Hello"))
     }
 
     @Test
     fun `should resolve and replace overriding replacements`() {
-        val resolvedMessage = language.resolve { key6.nestedComplex }
-            .replace(
-                mapOf(
-                    "color1" to "COLOR1",
-                    "descriptor.x" to "X-coordinate",
-                    "descriptor.y" to "Y-coordinate",
-                    "descriptor.z" to "Z-coordinate",
-                    "x" to 100,
-                    "y" to 200,
-                    "z" to 300
-                )
+        val resolvedMessage = localeTranslation.resolve { key6.nestedComplex }
+            .replacing(
+                "color1" to "COLOR1",
+                "descriptor.x" to "X-coordinate",
+                "descriptor.y" to "Y-coordinate",
+                "descriptor.z" to "Z-coordinate",
+                "x" to 100,
+                "y" to 200,
+                "z" to 300
             )
         assertThat(
             resolvedMessage,
@@ -162,9 +156,8 @@ class LanguageTests {
 
     private fun assertResolve(
         expected: String,
-        replacements: Map<String, Any> = emptyMap(),
         block: ExampleLanguage.() -> Message
     ) {
-        assertThat(language.resolve(replacements, block).resolved(), `is`(expected))
+        assertThat(localeTranslation.resolve(block).resolved(), `is`(expected))
     }
 }

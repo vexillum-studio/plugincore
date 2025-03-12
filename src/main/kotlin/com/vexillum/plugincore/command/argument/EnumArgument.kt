@@ -4,12 +4,12 @@ import com.vexillum.plugincore.command.extractor.EnumExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
-import com.vexillum.plugincore.language.message
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.message
 import kotlin.reflect.KClass
 
 open class EnumArgument<Sender : LanguageAgent, T : Enum<T>>(
-    descriptor: (CommandUser<*>) -> LanguageMessage,
+    descriptor: (CommandUser<*>) -> Message,
     enumClass: KClass<T>,
     override val processor: ArgumentProcessor<Sender, T, T>? = null
 ) : Argument1<Sender, T>() {
@@ -21,10 +21,10 @@ open class EnumArgument<Sender : LanguageAgent, T : Enum<T>>(
     ) : this(message(descriptor), enumClass, processor)
 
     constructor(
-        languageMessage: LanguageMessage,
+        message: Message,
         enumClass: KClass<T>,
         processor: ArgumentProcessor<Sender, T, T>? = null
-    ) : this({ languageMessage }, enumClass, processor)
+    ) : this({ message }, enumClass, processor)
 
     override val extractor = EnumExtractor<Sender, T>(enumClass, descriptor)
 }

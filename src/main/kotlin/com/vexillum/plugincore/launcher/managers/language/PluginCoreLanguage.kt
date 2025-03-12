@@ -1,6 +1,7 @@
 package com.vexillum.plugincore.launcher.managers.language
 
-import com.vexillum.plugincore.language.Message
+import com.vexillum.plugincore.language.Language
+import com.vexillum.plugincore.language.message.Message
 
 data class CommandParsing(
     val boolean: Message,
@@ -45,4 +46,4 @@ data class PluginCoreLanguage(
     val errorColor: Message,
     val errorAccent: Message,
     val command: CommandLanguage
-)
+) : Language

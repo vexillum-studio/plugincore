@@ -3,11 +3,11 @@ package com.vexillum.plugincore.language.node
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.vexillum.plugincore.extensions.trimEdges
-import com.vexillum.plugincore.language.Message
-import com.vexillum.plugincore.language.MessageBlock
-import com.vexillum.plugincore.language.ParameterBlock
-import com.vexillum.plugincore.language.ReplacedBlock
-import com.vexillum.plugincore.language.StartBlock
+import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.MessageBlock
+import com.vexillum.plugincore.language.message.ParameterBlock
+import com.vexillum.plugincore.language.message.ReplacedBlock
+import com.vexillum.plugincore.language.message.StartBlock
 import java.util.regex.Pattern
 
 internal abstract class LanguageIdentity : ScopedNode() {

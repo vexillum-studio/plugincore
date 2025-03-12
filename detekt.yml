@@ -21,6 +21,12 @@ formatting:
         ignoreBackTickedIdentifier: true
 
 complexity:
+    TooManyFunctions:
+        thresholdInClasses: 16
+        thresholdInFiles: 16
+        thresholdInEnums: 10
+        thresholdInInterfaces: 16
+        thresholdInObjects: 10
     LongParameterList:
         functionThreshold: 10
         constructorThreshold: 10

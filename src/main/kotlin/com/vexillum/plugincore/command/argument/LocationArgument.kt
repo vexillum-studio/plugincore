@@ -6,7 +6,7 @@ import com.vexillum.plugincore.command.extractor.WorldExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
+import com.vexillum.plugincore.language.message.Message
 import org.bukkit.Location
 import org.bukkit.World
 
@@ -28,7 +28,7 @@ open class LocationArgument<Sender : LanguageAgent>(
     }
 
     data class LocationDescriptor(
-        val world: LanguageMessage,
+        val world: Message,
         val vector: VectorDescriptor
     ) {
 

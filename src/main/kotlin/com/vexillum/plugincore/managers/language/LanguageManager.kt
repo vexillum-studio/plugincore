@@ -5,6 +5,7 @@ import com.vexillum.plugincore.extensions.copyResourceTo
 import com.vexillum.plugincore.language.InvalidLanguageException
 import com.vexillum.plugincore.language.Language
 import com.vexillum.plugincore.language.LocalLanguage
+import com.vexillum.plugincore.language.LocaleTranslation
 import com.vexillum.plugincore.language.context.LanguageContext
 import com.vexillum.plugincore.util.JsonUtil.JSON_EXTENSION
 import com.vexillum.plugincore.util.JsonUtil.JSON_GLOB_MATCHER
@@ -20,18 +21,18 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.reflect.KClass
 
-class LanguageManager<T : Any> internal constructor(
+class LanguageManager<T : Language> internal constructor(
     override val pluginCore: PluginCore,
     private val languageClass: KClass<T>,
     private val originFolderPath: String,
     private val destinationFolderPath: String
 ) : LanguageContext<T> {
 
-    private val languages = EnumMap<LocalLanguage, Language<T>>(LocalLanguage::class.java)
+    private val languages = EnumMap<LocalLanguage, LocaleTranslation<T>>(LocalLanguage::class.java)
 
     val loadedLanguages get() = languages.toMap()
 
-    override fun language(localLanguage: LocalLanguage): Language<T> =
+    override fun translation(localLanguage: LocalLanguage): LocaleTranslation<T> =
         // Get the exact language requested
         languages[localLanguage]
             ?: with(localLanguage) {
@@ -133,8 +134,8 @@ class LanguageManager<T : Any> internal constructor(
         path.inputStream().let { inputStream ->
             try {
                 try {
-                    val language = Language.create(localLanguage, inputStream, languageClass)
-                    languages[localLanguage] = language
+                    val localeTranslation = LocaleTranslation.create(localLanguage, inputStream, languageClass)
+                    languages[localLanguage] = localeTranslation
                     pluginCore.logManager.info("${localLanguage.languageName} language successfully loaded")
                 } catch (e: InvalidLanguageException) {
                     e.throwWithFileName(path.absolutePathString())

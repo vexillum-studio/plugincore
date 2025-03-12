@@ -4,7 +4,7 @@ import com.vexillum.plugincore.command.extractor.DoubleExtractor
 import com.vexillum.plugincore.command.processor.ArgumentProcessor
 import com.vexillum.plugincore.command.session.CommandUser
 import com.vexillum.plugincore.language.LanguageAgent
-import com.vexillum.plugincore.language.LanguageMessage
+import com.vexillum.plugincore.language.message.Message
 import org.bukkit.util.Vector
 
 open class VectorArgument<Sender : LanguageAgent>(
@@ -23,19 +23,19 @@ open class VectorArgument<Sender : LanguageAgent>(
     }
 
     data class VectorDescriptor(
-        val x: LanguageMessage,
-        val y: LanguageMessage,
-        val z: LanguageMessage
+        val x: Message,
+        val y: Message,
+        val z: Message
     ) {
 
         companion object {
 
             fun <Sender : LanguageAgent> of(user: CommandUser<Sender>) =
-                with(user) {
+                user.resolving({ command.descriptor }) {
                     VectorDescriptor(
-                        x = resolve { command.descriptor.x },
-                        y = resolve { command.descriptor.y },
-                        z = resolve { command.descriptor.z }
+                        x = resolve { x },
+                        y = resolve { y },
+                        z = resolve { z }
                     )
                 }
         }
