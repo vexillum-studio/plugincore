@@ -5,6 +5,7 @@ import com.vexillum.plugincore.language.LocalLanguage.ARGENTINEAN_SPANISH
 import com.vexillum.plugincore.language.LocalLanguage.AUSTRALIAN_ENGLISH
 import com.vexillum.plugincore.language.LocalLanguage.CHINESE
 import com.vexillum.plugincore.language.LocalLanguage.ENGLISH
+import com.vexillum.plugincore.language.LocalLanguage.MEXICO_SPANISH
 import com.vexillum.plugincore.language.LocalLanguage.SPANISH
 import com.vexillum.plugincore.language.message.Message
 import com.vexillum.plugincore.pluginCoreBase
@@ -53,7 +54,7 @@ class LanguageManagerTests {
 
     @Test
     fun `should get a sibling language if the requested language is not found`() {
-        assertThat(languageManager.translation(SPANISH).localeLanguage, `is`(ARGENTINEAN_SPANISH))
+        assertThat(languageManager.translation(MEXICO_SPANISH).localeLanguage, `is`(ARGENTINEAN_SPANISH))
     }
 
     @Test

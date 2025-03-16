@@ -1,22 +1,24 @@
 package com.vexillum.plugincore.language.node
 
-internal class LanguageObject(
-    override val parent: LanguageContainer? = null,
-    map: MutableMap<String, ScopedNode> = mutableMapOf()
-) : LanguageContainer(), MutableMap<String, ScopedNode> by map {
+import com.fasterxml.jackson.annotation.JsonValue
+import com.vexillum.plugincore.language.LanguageDeserializer.LanguageDeserializerContext
 
-    override fun child(pointer: List<String>, visitedScope: VisitedScope): LanguageIdentity? {
-        val nextKey = pointer.first()
-        val child = get(nextKey) ?: return null
-        val nextKeys = pointer.drop(1)
-        return if (nextKeys.isEmpty() && child is LanguageIdentity) {
-            child
-        } else if (child is LanguageContainer) {
-            child.child(nextKeys, visitedScope)
-        } else {
-            null
-        }
-    }
+internal class LanguageObject(
+    override val address: Address,
+    map: MutableMap<String, LanguageNode> = mutableMapOf()
+) : LanguageNode(), MutableMap<String, LanguageNode> by map {
+
+    override fun scopeResolver(
+        context: LanguageDeserializerContext,
+        key: String,
+        visitedScope: VisitedScope
+    ): LanguageResolver? =
+        // Searches for absolute, root based property and defaults to relative property
+        super.scopeResolver(context, key, visitedScope) ?: context.fromAddress(Address.of(key, address))
+
+    @JsonValue
+    override fun serialize() =
+        toMap().mapValues { (_, node) -> node.serialize() }
 
     override fun toString() = toMap().toString()
 }

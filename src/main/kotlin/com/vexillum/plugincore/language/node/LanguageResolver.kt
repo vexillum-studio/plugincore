@@ -1,8 +1,8 @@
 package com.vexillum.plugincore.language.node
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.vexillum.plugincore.extensions.trimEdges
+import com.vexillum.plugincore.language.LanguageDeserializer.LanguageDeserializerContext
 import com.vexillum.plugincore.language.message.Message
 import com.vexillum.plugincore.language.message.MessageBlock
 import com.vexillum.plugincore.language.message.ParameterBlock
@@ -10,19 +10,19 @@ import com.vexillum.plugincore.language.message.ReplacedBlock
 import com.vexillum.plugincore.language.message.StartBlock
 import java.util.regex.Pattern
 
-internal abstract class LanguageIdentity : ScopedNode() {
+internal abstract class LanguageResolver : LanguageNode() {
 
-    @get:JsonProperty(ID_FIELD)
-    abstract val id: Int
     abstract val value: String
 
     @JsonIgnore
     private lateinit var resolved: Message
 
     private fun resolve(
+        context: LanguageDeserializerContext,
         input: String,
         visitedScope: VisitedScope
     ): Message {
+        visitedScope += this
         var message: Message = StartBlock
         var previousEndIndex = 0
         val matcher = REPLACEMENT_PATTERN.matcher(input)
@@ -36,7 +36,7 @@ internal abstract class LanguageIdentity : ScopedNode() {
             if (startIndex - previousEndIndex > 0) {
                 message += MessageBlock(input.substring(previousEndIndex, startIndex))
             }
-            val resolvedProperty = scopeProperty(key, visitedScope)?.resolve(visitedScope)
+            val resolvedProperty = scopeResolver(context, key, visitedScope)?.resolve(context, visitedScope)
             if (resolvedProperty != null) {
                 if (resolvedProperty.size == 1) {
                     message += ReplacedBlock(key, resolvedProperty.raw)
@@ -55,19 +55,20 @@ internal abstract class LanguageIdentity : ScopedNode() {
         return message
     }
 
-    private fun resolve(visitedScope: VisitedScope = VisitedScope()): Message {
+    private fun resolve(
+        context: LanguageDeserializerContext,
+        visitedScope: VisitedScope = VisitedScope()
+    ): Message {
         if (!::resolved.isInitialized) {
-            visitedScope.add(this)
-            resolved = resolve(value, visitedScope)
+            resolved = resolve(context, value, visitedScope)
         }
         return resolved
     }
 
-    open fun toMessage(): Message =
-        resolve()
+    open fun toMessage(context: LanguageDeserializerContext): Message =
+        resolve(context)
 
     companion object {
-        const val ID_FIELD = "id"
         private val REPLACEMENT_PATTERN = Pattern.compile("(\\{[a-zA-Z0-9._#-]+})")
     }
 }

@@ -12,6 +12,8 @@ import com.vexillum.plugincore.language.LocalLanguage.ENGLISH
 import com.vexillum.plugincore.language.LocaleTranslation
 import com.vexillum.plugincore.managers.ManagerFactory
 import org.bukkit.plugin.java.JavaPlugin
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.mockito.kotlin.doReturn
@@ -73,6 +75,16 @@ inline fun <reified T : Throwable> assertThrowsMessage(expectedMessage: String, 
         assertEquals(expectedMessage, throwable.languageMessage.stripped())
     } else {
         assertEquals(expectedMessage, throwable.message)
+    }
+    return throwable
+}
+
+inline fun <reified T : Throwable> assertThrowsMessageContaining(expectedMessage: String, noinline block: () -> Unit): T {
+    val throwable = assertThrows(T::class.java, block)
+    if (throwable is LanguageException) {
+        assertThat(throwable.languageMessage.stripped(), containsString(expectedMessage))
+    } else {
+        assertThat(throwable.message, containsString(expectedMessage))
     }
     return throwable
 }

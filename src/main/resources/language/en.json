@@ -4,7 +4,7 @@
   "errorColor": "&c",
   "errorAccent": "&4",
   "command": {
-    "helpMessage": "Help for command {label}:",
+    "helpMessage": "Help for command {command}:",
     "permissionMessage": "You don't have permission to execute this command",
     "unknownUsage": "Unknown usage, instead use:",
     "incorrectUsage": "Incorrect usage for argument {argument}:",

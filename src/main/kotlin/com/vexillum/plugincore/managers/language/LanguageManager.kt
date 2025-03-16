@@ -2,10 +2,10 @@ package com.vexillum.plugincore.managers.language
 
 import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.extensions.copyResourceTo
-import com.vexillum.plugincore.language.InvalidLanguageException
 import com.vexillum.plugincore.language.Language
 import com.vexillum.plugincore.language.LocalLanguage
 import com.vexillum.plugincore.language.LocaleTranslation
+import com.vexillum.plugincore.language.MissingLanguageKeyException
 import com.vexillum.plugincore.language.context.LanguageContext
 import com.vexillum.plugincore.util.JsonUtil.JSON_EXTENSION
 import com.vexillum.plugincore.util.JsonUtil.JSON_GLOB_MATCHER
@@ -137,7 +137,7 @@ class LanguageManager<T : Language> internal constructor(
                     val localeTranslation = LocaleTranslation.create(localLanguage, inputStream, languageClass)
                     languages[localLanguage] = localeTranslation
                     pluginCore.logManager.info("${localLanguage.languageName} language successfully loaded")
-                } catch (e: InvalidLanguageException) {
+                } catch (e: MissingLanguageKeyException) {
                     e.throwWithFileName(path.absolutePathString())
                 }
             } catch (e: Exception) {

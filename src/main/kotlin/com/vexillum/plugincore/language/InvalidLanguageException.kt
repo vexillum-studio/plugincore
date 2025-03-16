@@ -1,13 +1,18 @@
 package com.vexillum.plugincore.language
 
-import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 
-private const val INDENT = "  "
-
-class InvalidLanguageException(
-    mappingException: JsonMappingException
+open class InvalidLanguageException(
+    private val causeException: Exception?
 ) : Exception() {
 
+    override val message: String?
+        get() = causeException?.message
+}
+
+class MissingLanguageKeyException(
+    mappingException: MismatchedInputException
+) : InvalidLanguageException(null) {
     private var fileName: String? = null
 
     private val fields = mappingException.path.map {
@@ -47,4 +52,8 @@ class InvalidLanguageException(
 
     private fun StringBuilder.appendIdent(line: String) =
         appendLine(line.prependIndent(INDENT))
+
+    companion object {
+        private const val INDENT = "  "
+    }
 }

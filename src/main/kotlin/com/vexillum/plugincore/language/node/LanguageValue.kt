@@ -1,15 +1,9 @@
 package com.vexillum.plugincore.language.node
 
 internal class LanguageValue(
-    override val parent: LanguageContainer,
-    override val id: Int,
+    override val address: Address,
     override val value: String
-) : LanguageIdentity() {
+) : LanguageResolver() {
 
-    override fun equals(other: Any?): Boolean =
-        (other as? LanguageValue)?.id == id
-
-    override fun hashCode(): Int = id
-
-    override fun toString() = value
+    override fun toString() = "$address=$value"
 }

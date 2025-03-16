@@ -2,6 +2,8 @@
 
 package com.vexillum.plugincore.managers.language
 
+import com.vexillum.plugincore.assertThrowsMessageContaining
+import com.vexillum.plugincore.language.InvalidLanguageException
 import com.vexillum.plugincore.language.Language
 import com.vexillum.plugincore.language.LocaleTranslation
 import com.vexillum.plugincore.language.message.Message
@@ -23,6 +25,7 @@ class LanguageTests {
         val key6: KeySix,
         val key7: MessageList,
         val key8: Message,
+        val descriptor: Descriptor
     ) : Language
 
     data class KeySix(
@@ -36,7 +39,32 @@ class LanguageTests {
         val newObject: Message
     )
 
+    data class Descriptor(
+        val message: Message,
+        val message2: Message,
+        val x: Message,
+        val y: Message,
+        val z: Message
+    )
+
     private lateinit var localeTranslation: LocaleTranslation<ExampleLanguage>
+
+    data class TestLanguage(
+        val object1: Object1,
+        val object2: Object2
+    ) : Language
+
+    data class Object1(
+        val key1: Message,
+        val key2: Message,
+        val key3: Message,
+        val key4: Message
+    )
+
+    data class Object2(
+        val key5: Message,
+        val key6: Message,
+    )
 
     @BeforeEach
     fun setUp() {
@@ -70,6 +98,8 @@ class LanguageTests {
                 ],
                 "key8": "{color1}{key1} {key6.nested} 7.6 {key6.nestedComplex} 7.6 ",
                 "descriptor": {
+                    "message": "This describes {descriptor}",
+                    "message2": "This goes to {key6}",
                     "x": "x",
                     "y": "y",
                     "z": "z"
@@ -152,6 +182,85 @@ class LanguageTests {
             resolvedMessage,
             `is`("COLOR1A chest is located at X-coordinate 100 Y-coordinate 200 Z-coordinate 300")
         )
+    }
+
+    @Test
+    fun `should resolve with parameter when the key points to it's container or an object`() {
+        // descriptor.message is using argument {descriptor} wich points to its own parent
+        assertResolve("This describes something") {
+            descriptor.message.replace("descriptor", "something")
+        }
+        // Points to an external object key, treated as parameter
+        assertResolve("This goes to the moon!") {
+            descriptor.message2.replace("key6", "the moon!")
+        }
+    }
+
+    @Test
+    fun `should get missing language key error`() {
+        assertThrowsMessageContaining<InvalidLanguageException>(
+            "\"key2\": <--- Missing field in json, language class Object1 is expecting this field"
+        ) {
+            languageFromJson<TestLanguage>(
+                """
+                {
+                   "object1": {
+                      "key1": "This is key1",
+                      "key3": "This is key3",
+                      "key4": "This is key4"
+                   },
+                   "object2": {
+                      "key5": "This is key5}",
+                      "key6": "This is key6"
+                   }
+                }
+                """.trimIndent()
+            )
+        }
+    }
+
+    @Test
+    fun `should get cyclic dependency error`() {
+        assertThrowsMessageContaining<InvalidLanguageException>(
+            "Invalid cyclic dependency in keys: [object1.key1, object1.key2, object1.key3]"
+        ) {
+            languageFromJson<TestLanguage>(
+                """
+                {
+                   "object1": {
+                      "key1": "This starts a cyclic dependency {key2}",
+                      "key2": "{key3}",
+                      "key3": "{key2}",
+                      "key4": "{key5}"
+                   },
+                   "object2": {
+                      "key5": "This creates a cyclic dependency with other object {key6}",
+                      "key6": "{key4}"
+                   }
+                }
+                """.trimIndent()
+            )
+        }
+        assertThrowsMessageContaining<InvalidLanguageException>(
+            "Invalid cyclic dependency in keys: [object1.key4, object2.key5, object2.key6]"
+        ) {
+            languageFromJson<TestLanguage>(
+                """
+                {
+                   "object1": {
+                      "key1": "Normal message",
+                      "key2": "Nothing unusual",
+                      "key3": "Yep, still normal",
+                      "key4": "{object2.key5}"
+                   },
+                   "object2": {
+                      "key5": "This creates a cyclic dependency with other object {key6}",
+                      "key6": "{object1.key4}"
+                   }
+                }
+                """.trimIndent()
+            )
+        }
     }
 
     private fun assertResolve(

@@ -2,9 +2,8 @@ package com.vexillum.plugincore.command
 
 import com.vexillum.plugincore.PluginCore
 import com.vexillum.plugincore.command.argument.Argument
-import com.vexillum.plugincore.command.session.CommandSession
+import com.vexillum.plugincore.entities.Console.commandSession
 import com.vexillum.plugincore.extensions.PluginCoreExtensions
-import com.vexillum.plugincore.extensions.tryCastOrNull
 import com.vexillum.plugincore.language.LanguageAgent
 
 @Suppress("TooManyFunctions", "LongParameterList")
@@ -103,7 +102,7 @@ class CommandBuilder<Sender : LanguageAgent> internal constructor(
             name = label
             aliases = mutableSetOf("?")
             addUsage { sender ->
-                val session = sender.currentCommandSession.tryCastOrNull<CommandSession<Sender>>()
+                val session = sender.commandSession()
                     ?: error("No current session")
                 val sessionCommand = session.command
                     ?: error("No current command")
