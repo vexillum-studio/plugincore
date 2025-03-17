@@ -14,6 +14,7 @@ import com.vexillum.plugincore.language.context.DefaultState
 import com.vexillum.plugincore.language.context.LanguageState
 import com.vexillum.plugincore.language.message.Message
 import com.vexillum.plugincore.language.message.MessageBuilder
+import com.vexillum.plugincore.language.message.appendLine
 import com.vexillum.plugincore.language.message.buildMessage
 import com.vexillum.plugincore.language.message.message
 import com.vexillum.plugincore.launcher.PluginCoreLauncher.Companion.pluginCoreInstance
@@ -48,7 +49,7 @@ internal class SimpleCommand<Sender : LanguageAgent>(
         var lastException: Exception? = null
         // Check for subcommand matching
         args.firstOrNull()?.let { firstArg ->
-            subCommands.forEach { subCommand ->
+            for (subCommand in subCommands) {
                 if (subCommand.matches(firstArg)) {
                     try {
                         subCommand.execute(session.moveToNextArg())
@@ -60,24 +61,34 @@ internal class SimpleCommand<Sender : LanguageAgent>(
             }
         }
         var executionContext: ExecutionContext<Sender>? = null
-        usages.forEach { usage ->
-            usage.toString()
-            val context = usage.execute(session.resetSession())
-            if (context.completed) {
-                return
-            }
-            val executionException = context.exception
-            if (
-                executionException != null &&
-                (executionContext == null || context.matchingScore > executionContext!!.matchingScore)
-            ) {
-                lastException = executionException
-                executionContext = context
+        for (usage in usages) {
+            try {
+                val context = usage.execute(session.resetSession())
+                if (context.completed) {
+                    return
+                }
+                val executionException = context.exception
+                if (
+                    executionException != null &&
+                    (executionContext == null || context.matchingScore > executionContext.matchingScore)
+                ) {
+                    lastException = executionException
+                    executionContext = context
+                }
+            } catch (e: Exception) {
+                lastException = e
             }
         }
         val exception = lastException ?: return
-        val context = executionContext ?: return
         val lastArg = session.currentArg
+        // Show not handled exceptions
+        if (exception !is CommandException) {
+            exception.message?.let {
+                session.agent.commandException {
+                    resolve { command.unknownError }.appendLine(it)
+                }
+            }
+        }
         // Show all usages message when none of the usages are satisfied
         if (
             (lastArg.isNullOrEmpty() && parent == null) ||
@@ -88,16 +99,12 @@ internal class SimpleCommand<Sender : LanguageAgent>(
             }
         }
         if (exception is CommandException) {
+            val context = executionContext ?: return
             // Show command exceptions
             if (exception is ArgumentExtractException) {
                 session.agent.commandException { argumentExtractMessage(session, exception, context) }
             }
             session.agent.commandException { exception.languageMessage }
-        } else {
-            // Show other type of exceptions
-            exception.message?.let {
-                session.agent.commandException { message(it) }
-            }
         }
     }
 

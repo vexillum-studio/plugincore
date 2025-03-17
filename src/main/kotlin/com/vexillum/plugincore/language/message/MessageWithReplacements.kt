@@ -11,11 +11,11 @@ internal class MessageWithReplacements(
         get() =
             stripped().length
 
-    override fun resolveString(replacements: Map<String, Any>): String =
-        message.resolveString(replacements)
-
     override fun resolved(): String =
         resolveString(messageReplacements.replacements)
+
+    override fun resolveString(replacements: Map<String, Any>): String =
+        message.resolveString(replacements)
 
     override fun repeat(times: Int): MessageWithReplacements =
         MessageWithReplacements(

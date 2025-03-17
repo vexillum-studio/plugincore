@@ -32,5 +32,6 @@ interface Command<Sender : LanguageAgent> {
         const val SLASH = "/"
         const val DOUBLE_SLASH = "$SLASH$SLASH"
         const val DEFAULT_HELP_LABEL = "help"
+        const val DEFAULT_HELP_ALIAS = "?"
     }
 }

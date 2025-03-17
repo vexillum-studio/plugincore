@@ -1,3 +1,5 @@
+@file:Suppress("unused", "TooManyFunctions", "LongParameterList")
+
 package com.vexillum.plugincore.command
 
 import com.vexillum.plugincore.PluginCore
@@ -6,7 +8,6 @@ import com.vexillum.plugincore.entities.Console.commandSession
 import com.vexillum.plugincore.extensions.PluginCoreExtensions
 import com.vexillum.plugincore.language.LanguageAgent
 
-@Suppress("TooManyFunctions", "LongParameterList")
 class CommandBuilder<Sender : LanguageAgent> internal constructor(
     override val pluginCore: PluginCore
 ) : PluginCoreExtensions {
@@ -100,14 +101,14 @@ class CommandBuilder<Sender : LanguageAgent> internal constructor(
     ) {
         addSubCommand {
             name = label
-            aliases = mutableSetOf("?")
+            aliases = mutableSetOf(Command.DEFAULT_HELP_ALIAS)
             addUsage { sender ->
                 val session = sender.commandSession()
                     ?: error("No current session")
                 val sessionCommand = session.command
                     ?: error("No current command")
                 sender.sendPrefixedMessage {
-                    sender.defaultState { resolve { command.helpMessage }.replace("label", sessionCommand.name) } +
+                    sender.defaultState { resolve { command.helpMessage }.replace("command", sessionCommand.name) } +
                         sessionCommand.usagesMessage(session)
                 }
             }
@@ -117,14 +118,14 @@ class CommandBuilder<Sender : LanguageAgent> internal constructor(
     internal fun build(): SimpleCommand<Sender> {
         require(::name.isInitialized) { "The property name must be defined" }
         return SimpleCommand(
-            pluginCore,
-            startToken,
-            name,
-            aliases,
-            description,
-            permission,
-            usages,
-            subCommands
+            pluginCore = pluginCore,
+            startToken = startToken,
+            name = name,
+            aliases = aliases,
+            description = description,
+            permission = permission,
+            usages = usages,
+            subCommands = subCommands
         )
     }
 }

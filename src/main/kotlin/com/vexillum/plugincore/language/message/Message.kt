@@ -8,7 +8,7 @@ import com.vexillum.plugincore.extensions.replaceLast
 import com.vexillum.plugincore.extensions.trimEdges
 import org.bukkit.ChatColor
 
-interface Message {
+interface Message : MessageFactory {
 
     val raw: String
     val size: Int get() = 1
@@ -23,13 +23,16 @@ interface Message {
 
     fun repeat(times: Int): Message =
         if (times > 0) {
-            CompoundMessage(Array(times) { this })
+            messageOf(Array(times) { this }.toList())
         } else {
             this
         }
 
-    fun mutate(block: (Message) -> Message?): Message =
-        block(this) ?: this
+    fun mutate(block: MutateMessageBlock.() -> Unit): Message =
+        MutateMessageBlock().run {
+            block()
+            mutate(this@Message)
+        }
 
     operator fun plus(message: Message?): Message =
         if (message == null || message.raw.isEmpty()) {
@@ -76,22 +79,16 @@ interface Message {
     }
 }
 
-internal object StartBlock : Message {
-    override val raw = "StartBlock"
+internal object EmptyBlock : Message {
+    override val raw = ""
     override val size = 0
 
     override fun resolveString(replacements: Map<String, Any>) =
-        error("StartBlock can't be resolved")
-
-    override fun repeat(times: Int): Message =
-        this
-
-    override fun mutate(block: (Message) -> Message?): Message =
-        this
+        raw
 
     override operator fun plus(message: Message?): Message =
         when {
-            (message == null || message is StartBlock) -> this
+            (message == null || message is EmptyBlock) -> this
             else -> message
         }
 }
@@ -120,13 +117,10 @@ open class CompoundMessage internal constructor(
             this
         }
 
-    override fun mutate(block: (Message) -> Message?): Message =
-        CompoundMessage(messages.map { it.mutate(block) }.toTypedArray())
-
     override operator fun plus(message: Message?): Message =
         when (message) {
             null -> this
-            is StartBlock -> this
+            is EmptyBlock -> this
             is CompoundMessage -> {
                 val merged = messages.last() + message.messages.first()
                 if (merged is CompoundMessage) {
@@ -169,9 +163,6 @@ class MessageList internal constructor(
         messages.joinToString(separator = "\n") {
             it.resolveString(replacements)
         }
-
-    override fun mutate(block: (Message) -> Message?): Message =
-        MessageList(messages.map { it.mutate(block) })
 
     override operator fun plus(message: Message?): Message =
         when {
@@ -223,10 +214,10 @@ data class ParameterBlock internal constructor(private val enclosed: String) : M
 
     override val raw = enclosed
 
-    private val parameter: String = enclosed.trimEdges()
+    val key: String = enclosed.trimEdges()
 
     override fun resolveString(replacements: Map<String, Any>): String =
-        (replacements[parameter]?.toString() ?: enclosed).postProcess()
+        (replacements[key]?.toString() ?: enclosed).postProcess()
 
     override fun toString(): String = enclosed
 
@@ -239,8 +230,8 @@ data class ParameterBlock internal constructor(private val enclosed: String) : M
 }
 
 data class ReplacedBlock internal constructor(
-    private val key: String,
-    private val replaced: String
+    val key: String,
+    val replaced: String
 ) : Message {
 
     override val raw = replaced
@@ -252,7 +243,9 @@ data class ReplacedBlock internal constructor(
 
     override fun equals(other: Any?): Boolean =
         if (other is String) resolved() == other
-        else (other as? ReplacedBlock)?.replaced == replaced
+        else (other as? ReplacedBlock)?.let {
+            it.replaced == replaced && it.key == key
+        } ?: false
 
     override fun hashCode(): Int =
         key.hashCode()

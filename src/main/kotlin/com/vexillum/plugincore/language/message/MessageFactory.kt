@@ -16,7 +16,9 @@ fun message(
     message: Message,
     replacements: MessageReplacements? = null
 ): Message {
-    return if (replacements != null && replacements.replacements.isNotEmpty()) {
+    return if (replacements == null || replacements.replacements.isEmpty()) {
+        message
+    } else {
         if (message is MessageWithReplacements) {
             MessageWithReplacements(
                 message = message.message,
@@ -25,8 +27,6 @@ fun message(
         } else {
             MessageWithReplacements(message, replacements)
         }
-    } else {
-        message
     }
 }
 
@@ -50,7 +50,15 @@ interface MessageFactory {
         CompoundMessage(arrayOf(*messages))
 
     fun messageOf(vararg parts: Any): Message =
-        parts.fold(StartBlock as Message) { acc, part ->
+        parts.fold(EmptyBlock as Message) { acc, part ->
+            when (part) {
+                is Message -> acc + part
+                else -> acc + message(part)
+            }
+        }
+
+    fun messageOf(parts: Collection<Any>): Message =
+        parts.fold(EmptyBlock as Message) { acc, part ->
             when (part) {
                 is Message -> acc + part
                 else -> acc + message(part)

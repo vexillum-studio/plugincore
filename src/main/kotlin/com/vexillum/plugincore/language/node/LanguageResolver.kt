@@ -3,11 +3,11 @@ package com.vexillum.plugincore.language.node
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.vexillum.plugincore.extensions.trimEdges
 import com.vexillum.plugincore.language.LanguageDeserializer.LanguageDeserializerContext
+import com.vexillum.plugincore.language.message.EmptyBlock
 import com.vexillum.plugincore.language.message.Message
 import com.vexillum.plugincore.language.message.MessageBlock
 import com.vexillum.plugincore.language.message.ParameterBlock
 import com.vexillum.plugincore.language.message.ReplacedBlock
-import com.vexillum.plugincore.language.message.StartBlock
 import java.util.regex.Pattern
 
 internal abstract class LanguageResolver : LanguageNode() {
@@ -23,7 +23,7 @@ internal abstract class LanguageResolver : LanguageNode() {
         visitedScope: VisitedScope
     ): Message {
         visitedScope += this
-        var message: Message = StartBlock
+        var message: Message = EmptyBlock
         var previousEndIndex = 0
         val matcher = REPLACEMENT_PATTERN.matcher(input)
         while (matcher.find()) {

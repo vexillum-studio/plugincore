@@ -149,4 +149,25 @@ class MessageTests : MessageFactory {
         }
         assertThat(message.stripped(), `is`("This is a stripped message"))
     }
+
+    @Test
+    fun `should correctly mutate messages`() {
+        val message = buildMessage {
+            appendReplacement("color", "&f")
+            append("This is a colored message, this is a ")
+            appendReplacement("accent", "&c")
+            appendParam("param")
+        }.replace("param", "parameter")
+
+        val mutated = message.mutate {
+            replacement {
+                val color = if (it.key == "color") "&c" else "&4"
+                repl(it.key, color)
+            }
+            parameter {
+                repl("bold", "&l") + it
+            }
+        }
+        assertThat(mutated.resolved(), `is`("§cThis is a colored message, this is a §4§lparameter"))
+    }
 }

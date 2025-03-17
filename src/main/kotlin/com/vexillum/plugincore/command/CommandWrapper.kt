@@ -11,7 +11,6 @@ import org.bukkit.command.CommandSender
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
-import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 import org.bukkit.command.Command as BukkitCommand
 
@@ -27,17 +26,17 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
 ),
     Listener {
 
-    private val sessions = ConcurrentHashMap<A, Session<A>>()
-
     private val pattern = Pattern.compile("^${internalCommand.startToken}(?<label>\\w+)\\s?(?<captured>.*)\$")
 
     private fun applyToSession(
         agent: A,
         block: Session<A>.() -> Session<A>
-    ): CommandSession<A> =
-        sessions.compute(agent) { _, value ->
-            value?.block() ?: Session(agent).block()
-        }!!
+    ): CommandSession<A> {
+        val currentSession = agent.currentCommandSession.tryCastOrNull<Session<A>>()
+        val appliedSession = currentSession?.block() ?: Session(agent).block()
+        agent.currentCommandSession = appliedSession
+        return appliedSession
+    }
 
     @EventHandler
     fun on(event: PlayerCommandPreprocessEvent) {
@@ -45,12 +44,10 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
         val message = event.message
         val matcher = pattern.matcher(message)
         if (!matcher.matches()) {
-            sessions.remove(sender)
             return
         }
         val label = matcher.group("label")
         if (!internalCommand.matches(label)) {
-            sessions.remove(sender)
             return
         }
         val captured = matcher.group("captured")
@@ -71,7 +68,7 @@ internal class CommandWrapper<C : CommandSender, A : LanguageAgent>(
             internalCommand.execute(session)
             return true
         } catch (e: CommandException) {
-            agent.sendMessage(e.message)
+            agent.sendMessage(e.languageMessage)
             return false
         } finally {
             agent.currentCommandSession = null

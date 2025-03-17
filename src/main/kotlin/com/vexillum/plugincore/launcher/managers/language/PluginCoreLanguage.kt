@@ -34,6 +34,7 @@ data class CommandLanguage(
     val helpMessage: Message,
     val unknownUsage: Message,
     val incorrectUsage: Message,
+    val unknownError: Message,
     val permissionMessage: Message,
     val transformMessage: Message,
     val parsing: CommandParsing,

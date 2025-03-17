@@ -8,7 +8,7 @@
     "permissionMessage": "You don't have permission to execute this command",
     "unknownUsage": "Unknown usage, instead use:",
     "incorrectUsage": "Incorrect usage for argument {argument}:",
-    "unknownError": "Unknown error while executing the command",
+    "unknownError": "Unknown error while executing the command:",
     "transformMessage": "Unable to convert '{value}' to {type}",
     "parsing": {
       "boolean": "'{value}' can't be parsed as a boolean value",

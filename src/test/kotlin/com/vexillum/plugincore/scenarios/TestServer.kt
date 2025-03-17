@@ -163,6 +163,7 @@ open class TestServer {
                     helpMessage = messageOf("Help for command ", param("label"), ":"),
                     unknownUsage = messageOf("Unknown usage, instead use:"),
                     incorrectUsage = messageOf("Incorrect usage for argument ", param("argument"), ":"),
+                    unknownError = messageOf("Unknown error while executing the command:"),
                     permissionMessage = messageOf("You don't have permission to execute that command"),
                     transformMessage = messageOf("You can't transform '", param("value"), "' to '", param("to"), "'"),
                     parsing = CommandParsing(
