@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.vexillum"
-version = "0.1.4"
+version = "0.1.5"
 
 val jarName = "PluginCore"
 val spigotVersion = "1.21.4-R0.1-SNAPSHOT"
