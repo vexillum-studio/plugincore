@@ -41,8 +41,8 @@ jobs:
       - id: vars
         name: Set versions
         run: |
-          echo "current_version=$(./gradlew printVersion -q)" >> $GITHUB_ENV
-          echo "latest_version=${{ fromJson(steps.get_last_package.outputs.data).organization.packages.nodes[0].latestVersion.version }}" >> $GITHUB_ENV
+          echo "current_version=$(./gradlew printVersion -q)" >> $GITHUB_ENV"
+          echo "latest_version=${{ fromJson(steps.get_last_package.outputs.data).organization.packages.nodes[0].latestVersion.version }} >> $GITHUB_ENV"
       - name: Publish to GitHub Packages
         if: ${{ env.current_version != env.latest_version }}
         run: ./gradlew publish
