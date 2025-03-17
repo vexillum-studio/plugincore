@@ -20,6 +20,7 @@ object JsonUtil {
         .configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
         .registerModule(KotlinModule.Builder().build())
         .registerModule(JavaTimeModule())
+        .registerModule(DateTimeModule())
 
     fun toJsonNode(value: Any): JsonNode = mapper.valueToTree(value)
 

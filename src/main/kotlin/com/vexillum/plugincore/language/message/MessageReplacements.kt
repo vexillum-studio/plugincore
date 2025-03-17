@@ -1,6 +1,6 @@
 package com.vexillum.plugincore.language.message
 
-interface MessageReplacements {
+interface MessageReplacements : Map<String, Any> {
     val replacements: Map<String, Any>
     fun replace(key: String, value: Any)
     fun replace(vararg replacements: Pair<String, Any>)
@@ -8,31 +8,33 @@ interface MessageReplacements {
     operator fun plus(other: MessageReplacements): MessageReplacements
 }
 
-internal fun messageReplacements(): MessageReplacements =
-    MessageReplacementsImpl()
+internal fun messageReplacements(
+    initialReplacements: Map<String, Any> = mutableMapOf()
+): MessageReplacements =
+    MessageReplacementsImpl(initialReplacements.toMutableMap())
 
-private class MessageReplacementsImpl : MessageReplacements {
+private class MessageReplacementsImpl(
+    private val innerReplacements: MutableMap<String, Any>
+) : MessageReplacements, Map<String, Any> by innerReplacements {
 
-    private val _replacements = mutableMapOf<String, Any>()
-
-    override val replacements: Map<String, Any> get() = _replacements
+    override val replacements: Map<String, Any> get() = innerReplacements
 
     override fun replace(key: String, value: Any) {
-        _replacements[key] = value
+        innerReplacements[key] = value
     }
 
     override fun replace(vararg replacements: Pair<String, Any>) {
         replacements.forEach { (key, value) ->
-            _replacements[key] = value
+            innerReplacements[key] = value
         }
     }
 
     override fun replaceAll(map: Map<String, Any>) {
-        _replacements.putAll(map)
+        innerReplacements.putAll(map)
     }
 
     override fun plus(other: MessageReplacements): MessageReplacements {
-        _replacements += other.replacements
+        innerReplacements += other.replacements
         return this
     }
 }

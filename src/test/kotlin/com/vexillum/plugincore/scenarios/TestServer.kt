@@ -35,6 +35,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.UUID
 
@@ -229,6 +230,9 @@ open class TestServer {
         val configManager = mock<ConfigManager<PluginCoreConfig>> {
             on { invoke() } doReturn PluginCoreConfig(
                 monospacedFont = true,
+                dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+                humanDateFormat = DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy"),
+                timeFormat = DateTimeFormatter.ofPattern("h:mm a"),
                 logs = LogConfig(
                     folder = "logs",
                     prefixFormat = "[hh:mm:ss.SSS]",

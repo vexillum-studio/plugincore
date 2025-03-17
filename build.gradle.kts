@@ -4,14 +4,17 @@ plugins {
     kotlin("jvm") version "1.9.0"
     id("io.gitlab.arturbosch.detekt").version("1.19.0")
     application
+    `java-library`
+    `maven-publish`
 }
 
 group = "com.vexillum"
-version = "1.0-SNAPSHOT"
+version = "0.1.4"
 
 val jarName = "PluginCore"
 val spigotVersion = "1.21.4-R0.1-SNAPSHOT"
 val mainClass = "com.vexillum.plugincore.launcher.PluginCoreLauncher"
+val jvmTarget = "17"
 
 repositories {
     mavenLocal()
@@ -52,7 +55,7 @@ detekt {
     autoCorrect = true
     buildUponDefaultConfig = true
     config = files("$projectDir/detekt.yml")
-    source  = files("src/main/kotlin", "src/test/kotlin")
+    source = files("src/main/kotlin", "src/test/kotlin")
 }
 
 tasks.jar {
@@ -77,5 +80,26 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
+    kotlinOptions.jvmTarget = jvmTarget
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/vexillum-studio/plugincore")
+
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GPR_USER")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GPR_KEY")
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("library") {
+            from(components["java"])
+            artifact(tasks["kotlinSourcesJar"])
+            artifactId = "plugincore"
+        }
+    }
 }

@@ -1,7 +1,7 @@
 package com.vexillum.plugincore.language.node
 
 import com.fasterxml.jackson.annotation.JsonValue
-import com.vexillum.plugincore.language.LanguageDeserializer.LanguageDeserializerContext
+import com.vexillum.plugincore.language.deserializer.MessageDeserializerContext
 
 internal class LanguageObject(
     override val address: Address,
@@ -9,7 +9,7 @@ internal class LanguageObject(
 ) : LanguageNode(), MutableMap<String, LanguageNode> by map {
 
     override fun scopeResolver(
-        context: LanguageDeserializerContext,
+        context: MessageDeserializerContext,
         key: String,
         visitedScope: VisitedScope
     ): LanguageResolver? =

@@ -1,13 +1,13 @@
 package com.vexillum.plugincore.language.node
 
 import com.fasterxml.jackson.annotation.JsonValue
-import com.vexillum.plugincore.language.LanguageDeserializer.LanguageDeserializerContext
+import com.vexillum.plugincore.language.deserializer.MessageDeserializerContext
 
 internal abstract class LanguageNode {
     abstract val address: Address
 
     open fun scopeResolver(
-        context: LanguageDeserializerContext,
+        context: MessageDeserializerContext,
         key: String,
         visitedScope: VisitedScope
     ): LanguageResolver? {

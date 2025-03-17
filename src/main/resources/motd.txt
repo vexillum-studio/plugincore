@@ -1,0 +1,51 @@
+Every great server runs on well-coded plugins. ⛏️
+Keep an eye on memory leaks in long-running tasks. 🌍
+Debugging is just another way to learn Bukkit better. 📜
+Design your plugin with modularity in mind. ⚡
+Make sure your listeners don't run unnecessary logic.!
+Think before you listen—event handlers matter! 🌍
+A great API makes a great plugin! ⚡
+Logging helps—never leave your users in the dark. 📜
+APIs evolve—keep your plugins updated.!
+Event-driven coding is the heart of Bukkit development. ✅
+Plugin dependencies should be managed properly. 🚀
+Keep your server fresh with new Bukkit plugins! ✅
+Don't block the main thread—use async operations. 🚀
+Test your plugins on a local server before deploying. ⛏️
+Optimize your Bukkit plugins for better performance. 🌍
+Always check if a player is online before messaging! 🌍
+Give proper feedback when commands fail. ⛏️
+Database or flatfile? Choose wisely! 📜
+NMS can be powerful, but updates will break it! 🌍
+YamlConfiguration makes saving data easy! 📜
+Use dependency injection for flexible code. ⛏️
+The console is your best debugging tool. 📜
+Handle player quit events to clean up data. 🚀
+ItemStacks can hold metadata—use it to your advantage! 🚀
+Develop smarter with Bukkit—code, test, deploy! 🚀
+Always register your events properly. 🔧
+Save player data before they leave! 🌍
+Performance matters—optimize your loops and queries. ⛏️
+Use the API, don't reinvent the wheel! 🚀
+Async tasks should never touch the Bukkit API! ⚡
+Reloading is risky—consider a full restart! ⚡
+Check for null before using player objects. ⚡
+A lightweight plugin keeps servers happy. 🌍
+Plugin.yml errors? YAML syntax matters! 📜
+Use async tasks wisely to prevent server lag. ⛏️
+Your plugin's name should be unique. 🔧
+Use command arguments wisely for usability. 🔧
+A good command structure makes user experience better. 🌍
+Never underestimate a good config.yml! ✅
+Use schedulers to manage repeating tasks effectively. 🔧
+Keep your dependencies updated for security. 📜
+Reflection can help, but it has a cost! ✅
+Exceptions in event handlers can break things. ⛏️
+A well-structured plugin makes maintenance easy! 📜
+Permissions are key—handle them properly! 🔧
+Proper exception handling prevents crashes. 📜
+Backups save lives—implement auto-saves! ⚡
+Your onEnable should be clean and fast. ⛏️
+BukkitRunnable gives more control over tasks. ✅
+PermissionsEx or LuckPerms? Choose wisely! 🔧
+FileConfiguration makes handling settings easy! 🌍

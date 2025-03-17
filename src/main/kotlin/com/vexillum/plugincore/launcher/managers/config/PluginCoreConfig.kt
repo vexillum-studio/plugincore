@@ -1,7 +1,12 @@
 package com.vexillum.plugincore.launcher.managers.config
 
+import java.time.format.DateTimeFormatter
+
 data class PluginCoreConfig(
     val monospacedFont: Boolean,
+    val dateformat: DateTimeFormatter,
+    val humanDateFormat: DateTimeFormatter,
+    val timeFormat: DateTimeFormatter,
     val logs: LogConfig
 )
 

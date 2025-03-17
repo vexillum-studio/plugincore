@@ -1,5 +1,8 @@
 {
   "monospacedFont": false,
+  "dateformat": "yyyy-MM-dd",
+  "humanDateFormat": "EEEE, MMM d, yyyy",
+  "timeFormat": "h:mm a",
   "logs": {
     "folder": "logs",
     "prefixFormat": "[hh:mm:ss.SSS]",

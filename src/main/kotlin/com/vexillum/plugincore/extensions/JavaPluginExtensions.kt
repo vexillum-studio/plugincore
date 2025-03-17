@@ -6,6 +6,9 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 
+val JavaPlugin.implementationVersion: String?
+    get() = this::class.java.`package`?.implementationVersion
+
 fun JavaPlugin.dispatchEvent(event: Event) =
     server.pluginManager.callEvent(event)
 

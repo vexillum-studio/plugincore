@@ -1,15 +1,18 @@
 package com.vexillum.plugincore.language
 
+import com.vexillum.plugincore.language.deserializer.MessageDeserializer.deserialize
+import com.vexillum.plugincore.language.message.MessageReplacements
 import java.io.InputStream
 import kotlin.reflect.KClass
 
 class LocaleTranslation<T : Language> private constructor(
     val localeLanguage: LocalLanguage,
-    override val value: T
+    override val value: T,
+    override val replacements: MessageReplacements
 ) : LocaleResolver<T> {
 
     override fun toString() =
-        "LocaleTranslation($localeLanguage)"
+        "${value::class.java.simpleName} LocaleTranslation($localeLanguage)"
 
     companion object {
 
@@ -18,9 +21,8 @@ class LocaleTranslation<T : Language> private constructor(
             languageStream: InputStream,
             languageClass: KClass<T>
         ): LocaleTranslation<T> {
-            val deserializer = LanguageDeserializer(languageClass)
-            val languageValue = deserializer.parseLanguage(languageStream)
-            return LocaleTranslation(localeLanguage, languageValue)
+            val result = deserialize(languageStream, languageClass)
+            return LocaleTranslation(localeLanguage, result.language, result.replacements)
         }
     }
 }

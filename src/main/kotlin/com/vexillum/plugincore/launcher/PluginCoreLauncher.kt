@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
     println(args)
 }
 
-class PluginCoreLauncher : PluginCoreBase(), DefaultLanguageResolver {
+class PluginCoreLauncher internal constructor() : PluginCoreBase(), DefaultLanguageResolver {
 
     init {
         pluginCoreInstance = this

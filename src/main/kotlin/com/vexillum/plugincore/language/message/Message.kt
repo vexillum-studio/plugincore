@@ -66,8 +66,7 @@ interface Message : MessageFactory {
     }
 
     fun replacingWith(replacements: Map<String, Any>): Message {
-        val messageReplacements = messageReplacements()
-        messageReplacements.replaceAll(replacements)
+        val messageReplacements = messageReplacements(replacements)
         return message(this, messageReplacements)
     }
 

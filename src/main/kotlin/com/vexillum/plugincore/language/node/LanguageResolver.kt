@@ -2,7 +2,7 @@ package com.vexillum.plugincore.language.node
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.vexillum.plugincore.extensions.trimEdges
-import com.vexillum.plugincore.language.LanguageDeserializer.LanguageDeserializerContext
+import com.vexillum.plugincore.language.deserializer.MessageDeserializerContext
 import com.vexillum.plugincore.language.message.EmptyBlock
 import com.vexillum.plugincore.language.message.Message
 import com.vexillum.plugincore.language.message.MessageBlock
@@ -18,7 +18,7 @@ internal abstract class LanguageResolver : LanguageNode() {
     private lateinit var resolved: Message
 
     private fun resolve(
-        context: LanguageDeserializerContext,
+        context: MessageDeserializerContext,
         input: String,
         visitedScope: VisitedScope
     ): Message {
@@ -56,7 +56,7 @@ internal abstract class LanguageResolver : LanguageNode() {
     }
 
     private fun resolve(
-        context: LanguageDeserializerContext,
+        context: MessageDeserializerContext,
         visitedScope: VisitedScope = VisitedScope()
     ): Message {
         if (!::resolved.isInitialized) {
@@ -65,7 +65,7 @@ internal abstract class LanguageResolver : LanguageNode() {
         return resolved
     }
 
-    open fun toMessage(context: LanguageDeserializerContext): Message =
+    open fun toMessage(context: MessageDeserializerContext): Message =
         resolve(context)
 
     companion object {

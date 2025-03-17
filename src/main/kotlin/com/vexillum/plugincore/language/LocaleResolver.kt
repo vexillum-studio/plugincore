@@ -1,10 +1,12 @@
 package com.vexillum.plugincore.language
 
 import com.vexillum.plugincore.language.message.Message
+import com.vexillum.plugincore.language.message.MessageReplacements
 
 interface LocaleResolver<T : Language> {
 
     val value: T
+    val replacements: MessageReplacements
 
     fun <M : Message> resolve(
         block: T.() -> M
