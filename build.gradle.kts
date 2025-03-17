@@ -75,6 +75,10 @@ tasks.jar {
     })
 }
 
+tasks.register("printVersion") {
+    println(project.version)
+}
+
 tasks.test {
     useJUnitPlatform()
 }
