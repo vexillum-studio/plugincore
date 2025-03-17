@@ -6,38 +6,27 @@ on:
       [ main ]
 
 jobs:
-  validate:
+  validate-publish:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'gradle'
-
       - name: Tests
         run: ./gradlew -Dfile.encoding=utf-8 clean detekt test
-  publish:
-    runs-on: ubuntu-latest
-    needs: validate
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: octokit/graphql-action@v2.x
         id: get_last_package
         with:
           query: |
             query last_version {
-              organization(login: "torre-labs") {
+              organization(login: "vexillum-studio") {
                 packages(first: 1, names: ["com.vexillum.plugincore"]) {
                   nodes {
                     latestVersion {
@@ -49,19 +38,11 @@ jobs:
             }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - id: vars
-        name: Set vars
+        name: Set versions
         run: |
-          echo "::set-output name=current_version::$(./gradlew properties --no-daemon --console=plain -q | grep '^version:' |  awk '{print $2}')"
-          echo "::set-output name=latest_version::${{ fromJson(steps.get_last_package.outputs.data).organization.packages.nodes[0].latestVersion.version }}"
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
+          echo "current_version=$(./gradlew properties --no-daemon --console=plain -q | grep '^version:' |  awk '{print $2}') >> $GITHUB_STATE"
+          echo "latest_version=${{ fromJson(steps.get_last_package.outputs.data).organization.packages.nodes[0].latestVersion.version }} >> $GITHUB_STATE"
       - name: Publish to GitHub Packages
         if: ${{ steps.vars.outputs.current_version != steps.vars.outputs.latest_version }}
         run: ./gradlew publish
